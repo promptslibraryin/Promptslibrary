@@ -30,7 +30,7 @@ def check_subscription():
 def index():
     category_id = request.args.get('category', type=int)
     page = request.args.get('page', 1, type=int)   # default = page 1
-    per_page =16                                   # show 9 prompts at once
+    per_page =29                                   # show 9 prompts at once
 
     categories = Category.query.all()
 

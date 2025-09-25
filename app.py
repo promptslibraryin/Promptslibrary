@@ -23,6 +23,7 @@ db_url = db_url or "mysql+pymysql://hardik:hardik%40005@localhost/prompt_gallery
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
+app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20 MB
 
 
 # initialize login manager
