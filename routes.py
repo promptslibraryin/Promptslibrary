@@ -34,13 +34,8 @@ def index():
         Sponsorship.is_active == True,
         db.or_(Sponsorship.expires_at.is_(None), Sponsorship.expires_at > datetime.utcnow())
     ).all()
-    page = request.args.get('page', 1, type=int)   # default = page 1
-<<<<<<< HEAD
-    per_page =30                                   # show 9 prompts at once
-
-=======
-    per_page =28-len(sponsorships)                                
->>>>>>> 8e0b38bba39ea8be2358c7d3dd615a5514886b03
+    page = request.args.get('page', 1, type=int)   # default = page 1                                  # show 9 prompts at once
+    per_page =28-len(sponsorships)
     categories = Category.query.all()
 
     query = Prompt.query
