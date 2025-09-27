@@ -76,10 +76,21 @@
                     </div>
                 {% endfor %}
             </div>
+<!-- ===== Divider + Pagination ===== -->
+<div class="pagination-wrapper">
+    <hr class="divider">
+    <div class="pagination-buttons">
+        {% if prompts.has_prev %}
+            <a href="{{ url_for('index', page=prompts.prev_num, category=selected_category) }}"
+               class="btn btn-secondary me-2">Previous</a>
+        {% endif %}
+        {% if prompts.has_next %}
+            <a href="{{ url_for('index', page=prompts.next_num, category=selected_category) }}"
+               class="btn btn-primary">Show More</a>
+        {% endif %}
+    </div>
+</div>
 
-{% if prompts.has_next %}
-    <a href="{{ url_for('index', page=prompts.next_num, category=selected_category) }}" class="btn btn-primary">Show More</a>
-{% endif %}
 
 
             {% if not prompts %}

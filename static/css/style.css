@@ -260,7 +260,22 @@ main {
     right: 0.5rem;
     opacity: 0.9;
 }
+.pagination-wrapper {
+    width: 100%;
+    flex-basis: 100%;     /* for flex masonry, forces new full row */
+    clear: both;          /* if floats are used */
+    margin-top: 40px;
+    text-align: center;
+}
 
+.divider {
+    border-top: 2px solid rgba(255,255,255,0.2);
+    margin-bottom: 20px;
+}
+
+.pagination-buttons a {
+    margin: 0 10px;
+}
 /* Modal Styles */
 .modal-body img {
     max-width: 100%;
