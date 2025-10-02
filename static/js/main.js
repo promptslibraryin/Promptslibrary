@@ -177,10 +177,20 @@ function showPromptModal(prompt) {
         contentHTML += `
             <div class="detail-section">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6>${feather.icons['file-text'].toSvg()} Prompt Text</h6>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="copyPromptText('${prompt.id}')" id="copyBtn_${prompt.id}">
-                        ${feather.icons['copy'].toSvg()} Copy
-                    </button>
+                    <!-- Left side: Title -->
+                    <h6 class="d-flex align-items-center mb-0">
+                        ${feather.icons['file-text'].toSvg()} Prompt Text
+                    </h6>
+
+                    <!-- Right side: Buttons -->
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary me-1" onclick="copyPromptText('${prompt.id}')" id="copyBtn_${prompt.id}">
+                            ${feather.icons['copy'].toSvg()} Copy
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="sharePromptText('${prompt.id}')" id="shareBtn_${prompt.id}">
+                            ${feather.icons['share-2'].toSvg()} Share
+                        </button>
+                    </div>
                 </div>
                 <p class="font-monospace bg-body-secondary p-3 rounded" id="promptText_${prompt.id}">${prompt.prompt_text}</p>
             </div>
@@ -565,6 +575,30 @@ async function copyPromptText(promptId) {
             
             showAlert('Prompt text copied to clipboard!', 'success');
         }
+    }
+}
+
+// Share prompt text function
+function sharePromptText(promptId) {
+    // Ye assume kar rahe ki prompt ka URL ye hai
+    const promptUrl = `${window.location.origin}/prompt/${promptId}`;
+
+    // Modern browsers me Web Share API use kar sakte ho
+    if (navigator.share) {
+        navigator.share({
+            title: 'Check out this prompt!',
+            text: 'I found this prompt useful:',
+            url: promptUrl
+        }).then(() => {
+            console.log('Prompt shared successfully');
+        }).catch((error) => {
+            console.error('Error sharing', error);
+        });
+    } else {
+        // Agar Web Share API available nahi hai, fallback ke liye URL copy karwa do
+        navigator.clipboard.writeText(promptUrl).then(() => {
+            alert('Prompt link copied to clipboard!');
+        });
     }
 }
 
