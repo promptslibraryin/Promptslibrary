@@ -172,7 +172,7 @@ function showPromptModal(prompt) {
         </div>
     `;
     
-    // Show prompt text only for subscribed users
+    // Show prompt text only for subscribed users (prompt.can_view_details)
     if (prompt.can_view_details) {
         contentHTML += `
             <div class="detail-section">
@@ -230,9 +230,13 @@ function showPromptModal(prompt) {
                 <div class="icon">🔒</div>
                 <h4>Premium Content</h4>
                 <p>Upgrade to Premium to view full prompt details and access all features.</p>
-                <form action="/subscription" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-warning">Upgrade to Premium</button>
-                </form>
+                <div class="d-flex gap-2">
+                    <form action="/subscription" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-warning">Upgrade to Premium</button>
+                    </form>
+                    <!-- Free trial button shown when eligible -->
+                    ${prompt.can_start_trial ? `<button id="startTrialBtn" class="btn btn-success">Start 1-month Free Trial</button>` : ''}
+                </div>
             </div>
         `;
     } else {
@@ -254,6 +258,27 @@ function showPromptModal(prompt) {
     // feather.replace();
     
     modal.show();
+
+    // Wire up free trial button if present
+    const trialBtn = document.getElementById('startTrialBtn');
+    if (trialBtn) {
+        trialBtn.addEventListener('click', async function() {
+            try {
+                const res = await fetch('/start_trial', { method: 'POST' });
+                if (res.redirected) {
+                    // If server redirects, follow to update UI
+                    window.location.href = res.url;
+                    return;
+                }
+
+                // Otherwise, try to parse JSON or reload
+                window.location.reload();
+            } catch (err) {
+                console.error('Error starting trial:', err);
+                showAlert('Unable to start trial. Please try again.', 'danger');
+            }
+        });
+    }
 }
 
 // Edit prompt

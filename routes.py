@@ -483,7 +483,8 @@ def get_prompt(prompt_id):
         'creator_instagram': prompt.creator.instagram_id,
         'is_saved': is_saved,
         'can_edit': current_user.is_authenticated and prompt.user_id == current_user.id,
-        'can_view_details': current_user.is_authenticated and (current_user.is_subscribed or (current_user.subscription_expiry and current_user.subscription_expiry > datetime.utcnow()))
+        'can_view_details': current_user.is_authenticated and (current_user.is_subscribed or (current_user.subscription_expiry and current_user.subscription_expiry > datetime.utcnow())),
+        'can_start_trial': current_user.is_authenticated and (not current_user.is_subscribed)
     })
 
 
@@ -495,6 +496,23 @@ def upgrade_subscription():
     db.session.commit()
     
     flash('Subscription upgraded successfully!', 'success')
+    return redirect(url_for('index'))
+
+
+@app.route('/start_trial', methods=['POST'])
+@login_required
+def start_trial():
+    # Allow a one-time 30-day free trial for each user
+    if current_user.is_subscribed:
+        flash('You already have an active subscription.', 'info')
+        return redirect(url_for('index'))
+
+    # Grant trial
+    current_user.is_subscribed = True
+    current_user.subscription_expiry = datetime.utcnow() + timedelta(days=30)
+    db.session.commit()
+
+    flash('1-month free trial activated! Enjoy premium access for 30 days.', 'success')
     return redirect(url_for('index'))
 
 

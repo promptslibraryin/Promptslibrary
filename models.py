@@ -100,7 +100,8 @@ def init_sample_data():
         username='demo_user',
         email='demo@example.com',
         password_hash=generate_password_hash('demo123'),
-        is_subscribed=False
+        is_subscribed=False,
+        
     )
     db.session.add(demo_user)
     
@@ -108,7 +109,8 @@ def init_sample_data():
         username='premium_user',
         email='premium@example.com',
         password_hash=generate_password_hash('premium123'),
-        is_subscribed=True
+        is_subscribed=True,
+        
     )
     db.session.add(subscribed_user)
     

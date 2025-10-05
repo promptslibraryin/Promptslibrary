@@ -100,6 +100,17 @@
                 </div>
             {% endif %}
 
+            {% if current_user.is_authenticated and (not current_user.is_subscribed) %}
+                <div class="text-center mt-4">
+                    <div class="alert alert-info">
+                        <strong>Get 1 month free!</strong> Try Premium for 30 days at no cost. You can claim this free trial only once.
+                        <form action="{{ url_for('start_trial') }}" method="POST" style="display:inline-block; margin-left: 10px;">
+                            <button type="submit" class="btn btn-success">Start 1-month Free Trial</button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+
             <div class="text-center mt-5">
                 <h4>Why Choose Premium?</h4>
                 <div class="row g-4 mt-3">
