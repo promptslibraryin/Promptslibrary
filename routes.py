@@ -98,8 +98,13 @@ def register():
         db.session.add(user)
         db.session.commit()
 
-        # Send OTP email using Flask-Mail
-        from flask_mail import Message
+        # Send OTP email using smtplib
+        import smtplib
+        from email.mime.text import MIMEText
+        from email.mime.multipart import MIMEMultipart
+        sender_email = "hardikv682@gmail.com"
+        sender_password = "tdowmwwzregmftcb"
+        receiver_email = email
         subject = "Your OTP for Prompt Gallery Registration"
         body = f"""
         Hello {username},
@@ -112,8 +117,16 @@ def register():
         Prompt Gallery Team
         """
         try:
-            msg = Message(subject, recipients=[email], body=body)
-            mail.send(msg)
+            msg = MIMEMultipart()
+            msg['From'] = sender_email
+            msg['To'] = receiver_email
+            msg['Subject'] = subject
+            msg.attach(MIMEText(body, 'plain'))
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, receiver_email, msg.as_string())
+            server.quit()
             flash('Registration successful! OTP sent to your email.', 'success')
         except Exception as e:
             print('OTP email send error:', e)
@@ -133,10 +146,15 @@ def otp_verify():
     if request.method == 'POST':
         if request.form.get('resend_otp'):
             import random
-            from flask_mail import Message
+            import smtplib
+            from email.mime.text import MIMEText
+            from email.mime.multipart import MIMEMultipart
             otp_code = str(random.randint(100000, 999999))
             user.otp_code = otp_code
             db.session.commit()
+            sender_email = "hardikv682@gmail.com"
+            sender_password = "tdsi jqxt bbfb yhf"
+            receiver_email = user.email
             subject = "Your OTP for Prompt Gallery Verification"
             body = f"""
             Hello {user.username},
@@ -149,8 +167,16 @@ def otp_verify():
             Prompt Gallery Team
             """
             try:
-                msg = Message(subject, recipients=[user.email], body=body)
-                mail.send(msg)
+                msg = MIMEMultipart()
+                msg['From'] = sender_email
+                msg['To'] = receiver_email
+                msg['Subject'] = subject
+                msg.attach(MIMEText(body, 'plain'))
+                server = smtplib.SMTP('smtp.gmail.com', 587)
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.sendmail(sender_email, receiver_email, msg.as_string())
+                server.quit()
                 flash('OTP sent to your email.', 'success')
             except Exception as e:
                 print('OTP resend error:', e)
