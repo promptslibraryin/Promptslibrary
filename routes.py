@@ -66,7 +66,47 @@ def login():
         if user and check_password_hash(user.password_hash, password):
             login_user(user)
             if not user.is_otp_verified:
-                flash('Please verify your OTP before logging in.', 'error')
+                # Generate and send OTP automatically
+                import random
+                import smtplib
+                from email.mime.text import MIMEText
+                from datetime import datetime
+                
+                otp_code = str(random.randint(100000, 999999))
+                user.otp_code = otp_code
+                user.last_otp_sent = datetime.utcnow()
+                db.session.commit()
+                
+                # Send OTP email
+                sender_email = SMTP_SENDER_EMAIL
+                sender_password = SMTP_SENDER_PASSWORD
+                receiver_email = user.email
+                subject = "Your OTP for Prompt Gallery Verification"
+                body = f"""
+                Hello {user.username},
+
+                Your OTP for verification is: {otp_code}
+
+                Please enter this OTP to verify your account.
+
+                Regards,
+                Prompt Gallery Team
+                """
+                
+                try:
+                    msg = MIMEText(body, 'plain')
+                    msg['From'] = sender_email
+                    msg['To'] = receiver_email
+                    msg['Subject'] = subject
+                    server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+                    server.login(sender_email, sender_password)
+                    server.sendmail(sender_email, receiver_email, msg.as_string())
+                    server.quit()
+                    flash('Please verify your OTP. We have sent a new OTP to your email.', 'info')
+                except Exception as e:
+                    print('OTP email send error:', e)
+                    flash('Please verify your OTP. Failed to send new OTP email. Please use resend option.', 'error')
+                
                 return redirect(url_for('otp_verify'))
             session.permanent = True
             flash('Logged in successfully!', 'success')
@@ -193,6 +233,98 @@ def otp_verify():
                 error = 'Invalid OTP. Please try again.'
     return render_template('otp_verify.html', error=error)
 
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form['email']
+        user = User.query.filter_by(email=email).first()
+        
+        if user:
+            import random
+            import smtplib
+            from email.mime.text import MIMEText
+            from datetime import datetime
+            
+            otp_code = str(random.randint(100000, 999999))
+            user.otp_code = otp_code
+            user.last_otp_sent = datetime.utcnow()
+            db.session.commit()
+            
+            sender_email = SMTP_SENDER_EMAIL
+            sender_password = SMTP_SENDER_PASSWORD
+            receiver_email = user.email
+            subject = "Password Reset OTP - Prompt Gallery"
+            body = f"""
+            Hello {user.username},
+
+            Your OTP for password reset is: {otp_code}
+
+            Please enter this OTP to reset your password.
+
+            Regards,
+            Prompt Gallery Team
+            """
+            
+            try:
+                msg = MIMEText(body, 'plain')
+                msg['From'] = sender_email
+                msg['To'] = receiver_email
+                msg['Subject'] = subject
+                server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+                server.login(sender_email, sender_password)
+                server.sendmail(sender_email, receiver_email, msg.as_string())
+                server.quit()
+                
+                flash('OTP sent to your email. Please check your inbox.', 'success')
+                return redirect(url_for('reset_password', email=email))
+            except Exception as e:
+                print('OTP email send error:', e)
+                flash('Failed to send OTP email. Please try again.', 'error')
+        else:
+            flash('Email not found. Please check your email address.', 'error')
+    
+    return render_template('forgot_password.html')
+
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_password():
+    email = request.args.get('email', '')
+    
+    if not email:
+        flash('Email parameter is missing.', 'error')
+        return redirect(url_for('forgot_password'))
+    
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        flash('User not found.', 'error')
+        return redirect(url_for('forgot_password'))
+    
+    if request.method == 'POST':
+        otp = request.form['otp']
+        new_password = request.form['new_password']
+        confirm_password = request.form['confirm_password']
+        
+        if not user.otp_code:
+            flash('OTP has expired or is invalid. Please request a new one.', 'error')
+            return redirect(url_for('forgot_password'))
+        
+        if otp != user.otp_code:
+            flash('Invalid OTP. Please try again.', 'error')
+            return render_template('reset_password.html', email=email)
+        
+        if new_password != confirm_password:
+            flash('Passwords do not match.', 'error')
+            return render_template('reset_password.html', email=email)
+        
+        # Update password
+        user.password_hash = generate_password_hash(new_password)
+        user.otp_code = None
+        db.session.commit()
+        
+        flash('Password reset successful. You can now login with your new password.', 'success')
+        return redirect(url_for('login'))
+    
+    return render_template('reset_password.html', email=email)
 
 @app.route('/logout')
 @login_required
