@@ -223,7 +223,7 @@ function showPromptModal(prompt) {
         if (actionButtons) {
             contentHTML += `<div class="mt-3">${actionButtons}</div>`;
         }
-    } else if (isAuthenticated && current_user.is_otp_verified && !isSubscribed) {
+    } else if (isAuthenticated && !isSubscribed) {
         // Show subscription prompt for non-subscribed users
         contentHTML += `
             <div class="subscription-prompt">
