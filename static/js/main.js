@@ -93,11 +93,13 @@ function showPromptModal(prompt) {
     const isSubscribed = document.querySelector('.badge.bg-success') !== null;
     
     let contentHTML = `
-        <div class="row">
-            <div class="col-md-6">
-                <img src="${prompt.image_url}" alt="${prompt.title}" class="img-fluid rounded mb-3">
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="prompt-image-container">
+                    <img src="${prompt.image_url}" alt="${prompt.title}" class="img-fluid rounded shadow-sm" style="width: 100%; max-height: 500px; object-fit: cover;">
+                </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-lg-7">
                 <div class="prompt-details">
                     <div class="detail-section">
                         <h6>${feather.icons['folder'].toSvg()} Category</h6>

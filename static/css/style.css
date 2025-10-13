@@ -755,3 +755,310 @@ main {
 .img-thumbnail:hover {
     transform: scale(1.05);
 }
+
+/* ===== ENHANCED PROFESSIONAL PROFILE STYLES ===== */
+
+/* Profile Header Enhancements */
+.profile-header-card {
+    background: linear-gradient(135deg, var(--bs-body-bg) 0%, var(--bs-secondary-bg) 100%);
+    transition: all 0.3s ease;
+}
+
+.profile-header-card:hover {
+    box-shadow: 0 12px 24px rgba(0,0,0,0.15) !important;
+}
+
+.profile-image {
+    transition: all 0.3s ease;
+    filter: brightness(1);
+}
+
+.profile-image:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2) !important;
+}
+
+/* Social Links Styling */
+.social-link {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.social-link i {
+    font-size: 1.1rem;
+}
+
+/* Bio Section */
+.bio-section {
+    background: var(--bs-body-bg) !important;
+    transition: all 0.3s ease;
+}
+
+.bio-section:hover {
+    background: var(--bs-secondary-bg) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Stats Cards */
+.stat-card {
+    background: var(--bs-body-bg);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card:hover {
+    transform: translateY(-8px) scale(1.02);
+}
+
+/* Prompt Cards on Profile */
+.hover-lift {
+    border: 1px solid var(--bs-border-color);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Modal Improvements */
+.modal-xl {
+    max-width: 1200px;
+}
+
+.modal-content {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-info) 100%);
+    border-radius: 16px 16px 0 0;
+}
+
+.modal-header .modal-title {
+    color: white;
+    font-size: 1.5rem;
+}
+
+.modal-header .btn-close {
+    filter: invert(1);
+    opacity: 0.8;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.prompt-image-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.prompt-image-container img {
+    transition: transform 0.5s ease;
+}
+
+.prompt-image-container:hover img {
+    transform: scale(1.05);
+}
+
+/* Detail Sections in Modal */
+.detail-section {
+    background: var(--bs-secondary-bg);
+    border-left: 4px solid var(--bs-primary);
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.detail-section:hover {
+    background: var(--bs-tertiary-bg);
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.detail-section h6 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--bs-primary);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.detail-section h6 svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Model Icons in Modal */
+.model-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    padding: 0.5rem;
+    border-radius: 8px;
+}
+
+.model-item:hover {
+    background: var(--bs-secondary-bg);
+    transform: translateY(-4px);
+}
+
+.model-icon {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.white-icon {
+    filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.model-name {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--bs-body-color);
+    text-align: center;
+}
+
+/* Button Enhancements */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-info) 100%);
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--bs-info) 0%, var(--bs-primary) 100%);
+}
+
+/* Form Enhancements */
+.form-control:focus, .form-select:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+.input-group-text {
+    background: var(--bs-primary);
+    color: white;
+    border: none;
+    font-weight: 500;
+}
+
+/* Feather Icon Utilities */
+.feather-sm {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2.5;
+}
+
+.feather-xs {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2.5;
+}
+
+/* Badge Enhancements */
+.badge {
+    padding: 0.5em 0.75em;
+    font-weight: 500;
+    border-radius: 6px;
+}
+
+/* Category and Sponsor Badges */
+.category-badge, .sponsor-badge {
+    z-index: 10;
+}
+
+.category-badge .badge {
+    backdrop-filter: blur(10px);
+    background: rgba(13, 110, 253, 0.9) !important;
+}
+
+.sponsor-badge .badge {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 193, 7, 0.95) !important;
+}
+
+/* Empty State Improvements */
+.empty-state {
+    background: var(--bs-secondary-bg);
+    border-radius: 12px;
+    border: 2px dashed var(--bs-border-color);
+}
+
+.empty-state i, .empty-state svg {
+    opacity: 0.5;
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+    .display-6 {
+        font-size: 1.75rem;
+    }
+    
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+    }
+}
+
+/* Loading States */
+@keyframes shimmer {
+    0% {
+        background-position: -468px 0;
+    }
+    100% {
+        background-position: 468px 0;
+    }
+}
+
+.loading-shimmer {
+    animation: shimmer 2s infinite;
+    background: linear-gradient(to right, var(--bs-secondary-bg) 0%, var(--bs-tertiary-bg) 20%, var(--bs-secondary-bg) 40%, var(--bs-secondary-bg) 100%);
+    background-size: 800px 104px;
+}
+
+/* Accessibility Improvements */
+.btn:focus-visible, .form-control:focus-visible {
+    outline: 3px solid var(--bs-primary);
+    outline-offset: 2px;
+}
+
+a:focus-visible {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Print Styles */
+@media print {
+    .sidebar, .mobile-nav, .btn, .modal {
+        display: none !important;
+    }
+    
+    main {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+}

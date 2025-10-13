@@ -1,8 +1,66 @@
 {% extends "base.html" %}
 
-{% block title %}Explore AI Prompts - Prompts Library{% endblock %}
+{% block title %}Explore AI Prompts - Prompts Library | ChatGPT, Midjourney & Gemini Prompts{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="Browse {{ prompts.total }} AI prompts for ChatGPT, Midjourney, Gemini and more. Free and premium prompts for content creation, design, coding, and business. Updated daily.">
+{% endblock %}
 
 {% block content %}
+<!-- Structured Data for ItemList of Prompts -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "AI Prompts Collection",
+  "description": "Curated collection of AI prompts for ChatGPT, Midjourney, Gemini and other AI tools",
+  "numberOfItems": {{ prompts.total }},
+  "itemListElement": [
+    {% for prompt in prompts.items[:10] %}
+    {
+      "@type": "ListItem",
+      "position": {{ loop.index }},
+      "item": {
+        "@type": "CreativeWork",
+        "name": "{{ prompt.title|replace('"', '\\"') }}",
+        "description": "{{ prompt.description[:200]|replace('"', '\\"') }}",
+        "image": "{{ prompt.image_url }}",
+        "author": {
+          "@type": "Person",
+          "name": "{{ prompt.creator.username }}"
+        },
+        "datePublished": "{{ prompt.created_at.isoformat() }}",
+        "genre": "{{ prompt.category.name }}",
+        "keywords": "AI prompts, {{ prompt.category.name }}, ChatGPT, Midjourney, Gemini"
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+
+<!-- Breadcrumb Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "{{ url_for('index', _external=True) }}"
+    }{% if selected_category %},
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "{{ categories|selectattr('id', 'equalto', selected_category)|first|attr('name') }}",
+      "item": "{{ url_for('index', category=selected_category, _external=True) }}"
+    }{% endif %}
+  ]
+}
+</script>
+
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
