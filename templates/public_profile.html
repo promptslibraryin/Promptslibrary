@@ -1,82 +1,207 @@
 {% extends "base.html" %}
 
-{% block title %}{{ user.username }} - Prompts Library{% endblock %}
+{% block title %}{{ user.username }} - AI Prompt Creator | Prompts Library{% endblock %}
 
 {% block content %}
+<!-- SEO Meta Tags -->
+<meta name="description" content="{{ user.bio[:160] if user.bio else user.username + ' is an AI prompt creator on Prompts Library. View their collection of ' + total_prompts|string + ' creative prompts for ChatGPT, Midjourney, and more.' }}">
+<meta property="og:title" content="{{ user.username }} - AI Prompt Creator">
+<meta property="og:description" content="{{ user.bio[:200] if user.bio else 'View ' + user.username + '\'s AI prompts on Prompts Library' }}">
+<meta property="og:image" content="{{ user.profile_pic or url_for('static', filename='images/default-profile.svg', _external=True) }}">
+<meta property="og:url" content="{{ url_for('public_profile', username=user.username, _external=True) }}">
+<meta property="og:type" content="profile">
+
+<!-- Structured Data for Person -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "{{ user.username }}",
+  "image": "{{ user.profile_pic or url_for('static', filename='images/default-profile.svg', _external=True) }}",
+  "url": "{{ url_for('public_profile', username=user.username, _external=True) }}",
+  {% if user.bio %}"description": "{{ user.bio|replace('"', '\\"') }}",{% endif %}
+  "memberOf": {
+    "@type": "Organization",
+    "name": "Prompts Library"
+  },
+  "sameAs": [
+    {% if user.instagram_id %}"https://instagram.com/{{ user.instagram_id }}",{% endif %}
+    {% if user.twitter_url %}"{{ user.twitter_url }}",{% endif %}
+    {% if user.github_url %}"{{ user.github_url }}",{% endif %}
+    {% if user.linkedin_url %}"{{ user.linkedin_url }}",{% endif %}
+    {% if user.portfolio_url %}"{{ user.portfolio_url }}"{% endif %}
+  ],
+  "knowsAbout": "AI Prompts, ChatGPT, Midjourney, Gemini",
+  "alumniOf": {
+    "@type": "CreativeWork",
+    "name": "AI Prompt Creation"
+  }
+}
+</script>
+
 <div class="container mt-4">
     <div class="row">
         <div class="col-lg-10 mx-auto">
-            <div class="card">
-                <div class="card-body">
+            <!-- Profile Header Card -->
+            <div class="card profile-header-card shadow-sm">
+                <div class="card-body p-4">
                     <div class="row">
+                        <!-- Profile Image Section -->
                         <div class="col-md-3 text-center mb-4 mb-md-0">
-                            <img src="{{ user.profile_pic or url_for('static', filename='images/default-profile.svg') }}"
-                                 alt="{{ user.username }}"
-                                 class="rounded-circle mb-3"
-                                 width="150" height="150"
-                                 style="object-fit: cover; border: 3px solid var(--bs-border-color);">
-                            {% if user.is_subscribed %}
-                                <span class="badge bg-success mb-2">Premium Creator</span>
-                            {% endif %}
+                            <div class="profile-image-wrapper">
+                                <img src="{{ user.profile_pic or url_for('static', filename='images/default-profile.svg') }}"
+                                     alt="{{ user.username }} profile picture"
+                                     class="profile-image rounded-circle mb-3"
+                                     width="180" height="180"
+                                     style="object-fit: cover; border: 4px solid var(--bs-border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                                {% if user.is_subscribed %}
+                                    <span class="badge bg-success mb-2 fs-6">
+                                        <i data-feather="star" class="feather-sm"></i> Premium Creator
+                                    </span>
+                                {% endif %}
+                            </div>
                         </div>
+
+                        <!-- Profile Info Section -->
                         <div class="col-md-9">
-                            <h2 class="mb-3">{{ user.username }}</h2>
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h1 class="mb-2 display-6 fw-bold">{{ user.username }}</h1>
+                                    <p class="text-muted mb-0">
+                                        <i data-feather="calendar" class="feather-sm"></i>
+                                        Joined {{ user.created_at.strftime('%B %Y') }}
+                                    </p>
+                                </div>
+                                {% if current_user.is_authenticated and current_user.id == user.id %}
+                                <a href="{{ url_for('profile') }}" class="btn btn-outline-primary">
+                                    <i data-feather="edit" class="feather-sm"></i> Edit Profile
+                                </a>
+                                {% endif %}
+                            </div>
 
                             {% if user.bio %}
-                            <div class="mb-3">
-                                <h6 class="text-muted"><i data-feather="info"></i> Bio</h6>
-                                <p>{{ user.bio }}</p>
+                            <div class="bio-section mb-4 p-3 bg-body-secondary rounded">
+                                <h6 class="text-muted mb-2">
+                                    <i data-feather="info" class="feather-sm"></i> About
+                                </h6>
+                                <p class="mb-0 lh-lg">{{ user.bio }}</p>
                             </div>
                             {% endif %}
 
-                            {% if user.instagram_id %}
-                            <div class="mb-3">
-                                <h6 class="text-muted"><i data-feather="instagram"></i> Instagram</h6>
-                                <a href="https://instagram.com/{{ user.instagram_id }}" target="_blank" class="text-decoration-none">
-                                    @{{ user.instagram_id }}
-                                </a>
+                            <!-- Social Links Section -->
+                            {% if user.instagram_id or user.twitter_url or user.github_url or user.linkedin_url or user.portfolio_url %}
+                            <div class="social-links-section mb-4">
+                                <h6 class="text-muted mb-3">
+                                    <i data-feather="link" class="feather-sm"></i> Connect With Me
+                                </h6>
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% if user.instagram_id %}
+                                    <a href="https://instagram.com/{{ user.instagram_id }}" target="_blank" rel="noopener noreferrer"
+                                       class="btn btn-outline-secondary btn-sm social-link">
+                                        <i class="fab fa-instagram me-1"></i> Instagram
+                                    </a>
+                                    {% endif %}
+                                    {% if user.twitter_url %}
+                                    <a href="{{ user.twitter_url }}" target="_blank" rel="noopener noreferrer"
+                                       class="btn btn-outline-secondary btn-sm social-link">
+                                        <i class="fab fa-twitter me-1"></i> Twitter
+                                    </a>
+                                    {% endif %}
+                                    {% if user.github_url %}
+                                    <a href="{{ user.github_url }}" target="_blank" rel="noopener noreferrer"
+                                       class="btn btn-outline-secondary btn-sm social-link">
+                                        <i class="fab fa-github me-1"></i> GitHub
+                                    </a>
+                                    {% endif %}
+                                    {% if user.linkedin_url %}
+                                    <a href="{{ user.linkedin_url }}" target="_blank" rel="noopener noreferrer"
+                                       class="btn btn-outline-secondary btn-sm social-link">
+                                        <i class="fab fa-linkedin me-1"></i> LinkedIn
+                                    </a>
+                                    {% endif %}
+                                    {% if user.portfolio_url %}
+                                    <a href="{{ user.portfolio_url }}" target="_blank" rel="noopener noreferrer"
+                                       class="btn btn-outline-primary btn-sm social-link">
+                                        <i class="fas fa-globe me-1"></i> Portfolio
+                                    </a>
+                                    {% endif %}
+                                </div>
                             </div>
                             {% endif %}
 
-                            <div class="row mt-4">
-                                <div class="col-6 col-md-4">
-                                    <div class="text-center p-3 bg-body-secondary rounded">
-                                        <h4 class="mb-0">{{ total_prompts }}</h4>
-                                        <small class="text-muted">Total Prompts</small>
+                            <!-- Stats Section -->
+                            <div class="stats-section">
+                                <div class="row g-3">
+                                    <div class="col-6 col-md-4">
+                                        <div class="stat-card text-center p-3 bg-primary bg-opacity-10 rounded h-100">
+                                            <div class="stat-icon mb-2">
+                                                <i data-feather="image" class="text-primary"></i>
+                                            </div>
+                                            <h3 class="mb-0 fw-bold text-primary">{{ total_prompts }}</h3>
+                                            <small class="text-muted">Total Prompts</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <div class="stat-card text-center p-3 bg-success bg-opacity-10 rounded h-100">
+                                            <div class="stat-icon mb-2">
+                                                <i data-feather="trending-up" class="text-success"></i>
+                                            </div>
+                                            <h3 class="mb-0 fw-bold text-success">{{ user.created_at.strftime('%b %Y') }}</h3>
+                                            <small class="text-muted">Member Since</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="stat-card text-center p-3 bg-info bg-opacity-10 rounded h-100">
+                                            <div class="stat-icon mb-2">
+                                                <i data-feather="award" class="text-info"></i>
+                                            </div>
+                                            <h3 class="mb-0 fw-bold text-info">{{ 'Premium' if user.is_subscribed else 'Free' }}</h3>
+                                            <small class="text-muted">Membership</small>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-6 col-md-4">
-                                    <div class="text-center p-3 bg-body-secondary rounded">
-                                        <h4 class="mb-0">{{ user.created_at.strftime('%b %Y') }}</h4>
-                                        <small class="text-muted">Joined</small>
-                                    </div>
-                                </div>
                             </div>
-
-                            {% if current_user.is_authenticated and current_user.id == user.id %}
-                            <div class="mt-4">
-                                <a href="{{ url_for('profile') }}" class="btn btn-primary">
-                                    <i data-feather="edit"></i> Edit Profile
-                                </a>
-                            </div>
-                            {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Prompts Section -->
             {% if prompts %}
-            <div class="mt-4">
-                <h4 class="mb-3">Recent Prompts by {{ user.username }}</h4>
-                <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-3">
+            <div class="prompts-section mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0">
+                        <i data-feather="grid" class="feather-sm"></i>
+                        Recent Prompts by {{ user.username }}
+                    </h3>
+                    <span class="badge bg-secondary fs-6">{{ total_prompts }} Total</span>
+                </div>
+
+                <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
                     {% for prompt in prompts %}
                     <div class="col" data-prompt-id="{{ prompt.id }}">
-                        <div class="card prompt-card h-100">
-                            <img src="{{ prompt.image_url }}" class="card-img-top" alt="{{ prompt.title }}" loading="lazy">
+                        <div class="card prompt-card h-100 shadow-sm hover-lift">
+                            <div class="card-img-container position-relative">
+                                <img src="{{ prompt.image_url }}"
+                                     class="card-img-top"
+                                     alt="{{ prompt.title }}"
+                                     loading="lazy"
+                                     style="height: 200px; object-fit: cover;">
+                                <div class="category-badge position-absolute top-0 start-0 m-2">
+                                    <span class="badge bg-primary">{{ prompt.category.name }}</span>
+                                </div>
+                            </div>
                             <div class="card-body">
-                                <h6 class="card-title">{{ prompt.title }}</h6>
-                                <p class="card-text text-muted small">{{ prompt.description[:80] }}{% if prompt.description|length > 80 %}...{% endif %}</p>
-                                <span class="badge bg-secondary">{{ prompt.category.name }}</span>
+                                <h6 class="card-title fw-bold mb-2">{{ prompt.title }}</h6>
+                                <p class="card-text text-muted small mb-0">
+                                    {{ prompt.description[:80] }}{% if prompt.description|length > 80 %}...{% endif %}
+                                </p>
+                            </div>
+                            <div class="card-footer bg-transparent border-top-0">
+                                <small class="text-muted">
+                                    <i data-feather="calendar" class="feather-xs"></i>
+                                    {{ prompt.created_at.strftime('%b %d, %Y') }}
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -84,17 +209,82 @@
                 </div>
             </div>
             {% else %}
-            <div class="mt-4 text-center p-5">
-                <i data-feather="image" size="48" class="text-muted mb-3"></i>
-                <h5 class="text-muted">No prompts yet</h5>
-                <p class="text-muted">{{ user.username }} hasn't created any prompts yet.</p>
+            <div class="empty-state mt-5 text-center p-5">
+                <i data-feather="image" size="64" class="text-muted mb-3"></i>
+                <h4 class="text-muted mb-2">No prompts yet</h4>
+                <p class="text-muted">{{ user.username }} hasn't created any prompts yet. Check back later!</p>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
 
+<style>
+.profile-header-card {
+    border: none;
+    border-radius: 12px;
+}
+
+.profile-image-wrapper {
+    position: relative;
+}
+
+.bio-section {
+    border-left: 4px solid var(--bs-primary);
+}
+
+.social-link {
+    transition: all 0.3s ease;
+}
+
+.social-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.stat-card {
+    transition: all 0.3s ease;
+    border: 1px solid var(--bs-border-color);
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.stat-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+.hover-lift {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.hover-lift:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.feather-sm {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+}
+
+.feather-xs {
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
+}
+
+.prompts-section h3 .feather-sm {
+    margin-right: 8px;
+}
+</style>
+
 <script>
-    feather.replace();
+feather.replace();
 </script>
 {% endblock %}

@@ -587,6 +587,19 @@ def profile():
         bio = request.form.get('bio', '').strip()
         current_user.bio = bio if bio else None
 
+        # Update social links
+        github_url = request.form.get('github_url', '').strip()
+        current_user.github_url = github_url if github_url else None
+
+        linkedin_url = request.form.get('linkedin_url', '').strip()
+        current_user.linkedin_url = linkedin_url if linkedin_url else None
+
+        twitter_url = request.form.get('twitter_url', '').strip()
+        current_user.twitter_url = twitter_url if twitter_url else None
+
+        portfolio_url = request.form.get('portfolio_url', '').strip()
+        current_user.portfolio_url = portfolio_url if portfolio_url else None
+
         username = request.form.get('username', '').strip()
         if current_user.username!=username:
             import re
