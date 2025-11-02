@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Prompt - Prompts Library</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon-16x16.png">
+    
+    <link href="{{ url_for('static', filename='css/pixel-gallery.css') }}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+</head>
+<body class="pixel-theme">
+    
+    <!-- Pixel Header -->
+    <header class="pixel-header">
+        <a href="{{ url_for('index') }}" class="pixel-logo">
+            <img src="{{ url_for('static', filename='images/eagle-logo.jpg') }}" alt="Prompts Library Logo">
+            <span>Prompts-Library</span>
+        </a>
+        <nav class="pixel-nav">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('gallery') }}">Explore</a>
+            {% if current_user.is_authenticated and current_user.is_admin %}
+                <a href="{{ url_for('add_prompt') }}" class="active">Upload</a>
+                <a href="{{ url_for('my_prompts') }}">My Prompts</a>
+                <a href="{{ url_for('saved_prompts') }}">Saved</a>
+                <a href="{{ url_for('profile') }}">Profile</a>
+                <a href="{{ url_for('admin_users') }}">Admin</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="pixel-container" style="padding-top: 1rem;">
+                {% for category, message in messages %}
+                    <div style="padding: 1rem; margin-bottom: 1rem; background: rgba(157, 78, 221, 0.2); border: 2px solid var(--pixel-purple); border-radius: 8px; font-family: 'VT323', monospace; font-size: 1.1rem;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <div class="pixel-container">
+    {% if current_user.is_admin %}
+        <div class="page-header">
+            <h1 class="page-title">Add New Prompt</h1>
+            <p class="page-subtitle">Create and share your AI prompt</p>
+        </div>
+
+        <div style="max-width: 800px; margin: 0 auto;">
+            <form method="POST" enctype="multipart/form-data" style="background: rgba(26, 26, 31, 0.6); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 2rem;">
+                
+                <!-- Title -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="title" style="display: block; font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">
+                        <i class="fas fa-heading"></i> Title <span style="color: var(--pixel-red);">*</span>
+                    </label>
+                    <input type="text" id="title" name="title" required
+                           style="width: 100%; padding: 0.8rem; font-size: 1.1rem; font-family: 'VT323', monospace; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; color: var(--pixel-white); transition: all 0.3s ease;"
+                           onfocus="this.style.borderColor='var(--pixel-cyan)'; this.style.boxShadow='0 0 10px var(--pixel-cyan)'"
+                           onblur="this.style.borderColor='var(--pixel-purple)'; this.style.boxShadow='none'"
+                           placeholder="Enter a catchy title for your prompt">
+                </div>
+
+                <!-- Description -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="description" style="display: block; font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">
+                        <i class="fas fa-align-left"></i> Description <span style="color: var(--pixel-red);">*</span>
+                    </label>
+                    <textarea id="description" name="description" rows="3" required
+                              style="width: 100%; padding: 0.8rem; font-size: 1.1rem; font-family: 'VT323', monospace; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; color: var(--pixel-white); resize: vertical; transition: all 0.3s ease;"
+                              onfocus="this.style.borderColor='var(--pixel-cyan)'; this.style.boxShadow='0 0 10px var(--pixel-cyan)'"
+                              onblur="this.style.borderColor='var(--pixel-purple)'; this.style.boxShadow='none'"
+                              placeholder="Brief description of the prompt's purpose or output"></textarea>
+                    <small style="font-family: 'VT323', monospace; font-size: 0.9rem; color: rgba(248, 249, 250, 0.6);">
+                        Describe what this prompt does and what users can create with it
+                    </small>
+                </div>
+
+                <!-- Prompt Text -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="prompt_text" style="display: block; font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">
+                        <i class="fas fa-code"></i> Prompt Text <span style="color: var(--pixel-red);">*</span>
+                    </label>
+                    <textarea id="prompt_text" name="prompt_text" rows="5" required
+                              style="width: 100%; padding: 0.8rem; font-size: 1.1rem; font-family: 'VT323', monospace; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; color: var(--pixel-white); resize: vertical; transition: all 0.3s ease;"
+                              onfocus="this.style.borderColor='var(--pixel-cyan)'; this.style.boxShadow='0 0 10px var(--pixel-cyan)'"
+                              onblur="this.style.borderColor='var(--pixel-purple)'; this.style.boxShadow='none'"
+                              placeholder="Enter the actual prompt text that users will see and use"></textarea>
+                    <small style="font-family: 'VT323', monospace; font-size: 0.9rem; color: rgba(248, 249, 250, 0.6);">
+                        The actual prompt text that users will use
+                    </small>
+                </div>
+
+                <!-- Image Source Selection -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">
+                        <i class="fas fa-image"></i> Image <span style="color: var(--pixel-red);">*</span>
+                    </label>
+                    
+                    <div style="display: flex; gap: 2rem; margin-bottom: 1rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-family: 'VT323', monospace; font-size: 1.1rem;">
+                            <input type="radio" name="image_source" id="image_url_radio" value="url" checked
+                                   style="width: 20px; height: 20px; cursor: pointer;">
+                            <i class="fas fa-link"></i> Image URL
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-family: 'VT323', monospace; font-size: 1.1rem;">
+                            <input type="radio" name="image_source" id="image_upload_radio" value="upload"
+                                   style="width: 20px; height: 20px; cursor: pointer;">
+                            <i class="fas fa-upload"></i> Upload Image
+                        </label>
+                    </div>
+
+                    <!-- URL Input -->
+                    <div id="url_input">
+                        <input type="url" id="image_url" name="image_url" placeholder="https://example.com/image.jpg"
+                               style="width: 100%; padding: 0.8rem; font-size: 1.1rem; font-family: 'VT323', monospace; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; color: var(--pixel-white); transition: all 0.3s ease;"
+                               onfocus="this.style.borderColor='var(--pixel-cyan)'; this.style.boxShadow='0 0 10px var(--pixel-cyan)'"
+                               onblur="this.style.borderColor='var(--pixel-purple)'; this.style.boxShadow='none'">
+                    </div>
+
+                    <!-- File Upload -->
+                    <div id="file_input" style="display: none;">
+                        <input type="file" id="image_file" name="image_file" accept="image/*"
+                               style="width: 100%; padding: 0.8rem; font-size: 1.1rem; font-family: 'VT323', monospace; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; color: var(--pixel-white); cursor: pointer;"
+                               onchange="previewImage(this)">
+                        <div id="image_preview" style="margin-top: 1rem;"></div>
+                    </div>
+                </div>
+
+                <!-- Category -->
+                <div style="margin-bottom: 2rem;">
+                    <label for="category_id" style="display: block; font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">
+                        <i class="fas fa-folder"></i> Category <span style="color: var(--pixel-red);">*</span>
+                    </label>
+                    <div style="position: relative;">
+                        <select id="category_id" name="category_id" required
+                                style="width: 100%; padding: 0.8rem 2.5rem 0.8rem 0.8rem; font-size: 1.1rem; font-family: 'VT323', monospace; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; color: var(--pixel-white); cursor: pointer; appearance: none; transition: all 0.3s ease;"
+                                onfocus="this.style.borderColor='var(--pixel-cyan)'; this.style.boxShadow='0 0 10px var(--pixel-cyan)'"
+                                onblur="this.style.borderColor='var(--pixel-purple)'; this.style.boxShadow='none'">
+                            <option value="">Select a category</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <i class="fas fa-chevron-down" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--pixel-purple); pointer-events: none;"></i>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <button type="submit" class="pixel-btn pixel-btn-primary" style="padding: 1rem 2rem;">
+                        <i class="fas fa-plus"></i> Add Prompt
+                    </button>
+                    <a href="{{ url_for('my_prompts') }}" class="pixel-btn" style="padding: 1rem 2rem; text-decoration: none;">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+        {% else %}
+            <div style="text-align: center; padding: 4rem 2rem;">
+                <div style="font-size: 4rem; color: var(--pixel-red); margin-bottom: 1.5rem;">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h3 style="font-family: 'Press Start 2P', cursive; font-size: 1.2rem; color: var(--pixel-white); margin-bottom: 1rem;">
+                    Access Denied
+                </h3>
+                <p style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.7);">
+                    You are not authorized to access this page. Only admins can add prompts.
+                </p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Mobile Bottom Navbar -->
+    <nav class="mobile-navbar">
+        <a href="{{ url_for('index') }}">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('gallery') }}">
+            <div class="nav-icon"><i class="fas fa-th"></i></div>
+            <span>Explore</span>
+        </a>
+        {% if current_user.is_authenticated and current_user.is_admin %}
+            <a href="{{ url_for('add_prompt') }}" class="active">
+                <div class="nav-icon"><i class="fas fa-plus"></i></div>
+                <span>Upload</span>
+            </a>
+        {% endif %}
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('saved_prompts') }}">
+                <div class="nav-icon"><i class="fas fa-bookmark"></i></div>
+                <span>Saved</span>
+            </a>
+            <a href="{{ url_for('profile') }}">
+                <div class="nav-icon"><i class="fas fa-user"></i></div>
+                <span>Profile</span>
+            </a>
+        {% else %}
+            <a href="{{ url_for('login') }}">
+                <div class="nav-icon"><i class="fas fa-sign-in-alt"></i></div>
+                <span>Login</span>
+            </a>
+        {% endif %}
+    </nav>
+
+    <script>
+        const urlRadio = document.getElementById('image_url_radio');
+        const uploadRadio = document.getElementById('image_upload_radio');
+        const urlInput = document.getElementById('url_input');
+        const fileInput = document.getElementById('file_input');
+        const imageUrlElement = document.getElementById('image_url');
+        const imageFileElement = document.getElementById('image_file');
+
+        // Toggle between URL and upload inputs
+        function toggleImageInput() {
+            if (urlRadio.checked) {
+                urlInput.style.display = 'block';
+                fileInput.style.display = 'none';
+                imageUrlElement.required = true;
+                imageFileElement.required = false;
+            } else {
+                urlInput.style.display = 'none';
+                fileInput.style.display = 'block';
+                imageUrlElement.required = false;
+                imageFileElement.required = true;
+            }
+        }
+
+        urlRadio.addEventListener('change', toggleImageInput);
+        uploadRadio.addEventListener('change', toggleImageInput);
+
+        // Image preview for uploaded files
+        function previewImage(input) {
+            const preview = document.getElementById('image_preview');
+            const file = input.files[0];
+            
+            if (file) {
+                // Validate file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    input.value = '';
+                    preview.innerHTML = '';
+                    return;
+                }
+                
+                // Validate file type
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Please select a valid image file (JPEG, PNG, GIF, WebP)');
+                    input.value = '';
+                    preview.innerHTML = '';
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `
+                        <div style="border: 2px solid var(--pixel-cyan); border-radius: 8px; padding: 1rem; background: rgba(0, 255, 255, 0.1);">
+                            <img src="${e.target.result}" alt="Preview" style="max-width: 100%; max-height: 300px; border-radius: 4px; display: block; margin: 0 auto;">
+                            <div style="text-align: center; margin-top: 0.5rem; font-family: 'VT323', monospace; font-size: 1rem; color: rgba(248, 249, 250, 0.7);">
+                                Preview: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)
+                            </div>
+                        </div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.innerHTML = '';
+            }
+        }
+    </script>
+</body>
+</html>

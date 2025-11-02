@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore AI Prompts - Prompts Library | ChatGPT, Midjourney & Gemini Prompts</title>
+    <meta name="description" content="Browse {{ prompts.total }} AI prompts for ChatGPT, Midjourney, Gemini and more. Free and premium prompts for content creation, design, coding, and business. Updated daily.">
+    <meta name="keywords" content="AI prompts, ChatGPT prompts, Midjourney prompts, Gemini prompts, free AI prompts, prompt gallery">
+    
+    <meta property="og:title" content="Explore AI Prompts - Prompts Library">
+    <meta property="og:description" content="Browse thousands of AI prompts for ChatGPT, Midjourney, Gemini and more.">
+    <meta property="og:image" content="{{ url_for('static', filename='images/pm.png', _external=True) }}">
+    <meta property="og:url" content="{{ request.url }}">
+    
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon-16x16.png">
+    
+    <link href="{{ url_for('static', filename='css/pixel-gallery.css') }}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
+    <!-- Structured Data for ItemList of Prompts -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "AI Prompts Collection",
+      "description": "Curated collection of AI prompts for ChatGPT, Midjourney, Gemini and other AI tools",
+      "numberOfItems": {{ prompts.total }},
+      "itemListElement": [
+        {% for prompt in prompts.items[:10] %}
+        {
+          "@type": "ListItem",
+          "position": {{ loop.index }},
+          "item": {
+            "@type": "CreativeWork",
+            "name": "{{ prompt.title|replace('"', '\\"') }}",
+            "description": "{{ prompt.description[:200]|replace('"', '\\"') }}",
+            "image": "{{ prompt.image_url }}",
+            "author": {
+              "@type": "Person",
+              "name": "{{ prompt.creator.username }}"
+            },
+            "datePublished": "{{ prompt.created_at.isoformat() }}",
+            "genre": "{{ prompt.category.name }}",
+            "keywords": "AI prompts, {{ prompt.category.name }}, ChatGPT, Midjourney, Gemini"
+          }
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ]
+    }
+    </script>
+</head>
+<body class="pixel-theme">
+    
+    <!-- Pixel Header -->
+    <header class="pixel-header">
+        <a href="{{ url_for('index') }}" class="pixel-logo">
+            <img src="{{ url_for('static', filename='images/eagle-logo.jpg') }}" alt="Prompts Library Logo">
+            <span>Prompts-Library</span>
+        </a>
+        <nav class="pixel-nav">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('gallery') }}" class="active">Explore</a>
+            {% if current_user.is_authenticated %}
+                {% if current_user.is_admin %}
+                    <a href="{{ url_for('add_prompt') }}">Upload</a>
+                {% endif %}
+                <a href="{{ url_for('profile') }}">Profile</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Sign Up</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="pixel-container" style="padding-top: 1rem;">
+                {% for category, message in messages %}
+                    <div style="padding: 1rem; margin-bottom: 1rem; background: rgba(157, 78, 221, 0.2); border: 2px solid var(--pixel-purple); border-radius: 8px; font-family: 'VT323', monospace; font-size: 1.1rem;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <div class="pixel-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">Explore AI Prompts</h1>
+            <p class="page-subtitle">{{ prompts.total }} AI-powered prompts for your creativity</p>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="category-filter">
+            <a href="{{ url_for('gallery') }}" class="category-btn {% if not selected_category %}active{% endif %}">All Categories</a>
+            {% for category in categories %}
+                <a href="{{ url_for('category_page', slug=category.slug) if category.slug else url_for('gallery', category=category.id) }}" 
+                   class="category-btn {% if selected_category == category.id %}active{% endif %}">
+                    {{ category.name }}
+                </a>
+            {% endfor %}
+        </div>
+
+        <!-- Prompt Grid -->
+        <div class="prompt-grid">
+            <!-- Sponsored Content -->
+            {% for sponsorship in sponsorships %}
+                <div class="pixel-prompt-card pixel-sponsor-card" onclick="openSponsorshipModal({{ sponsorship.id }})">
+                    <div class="card-image-container">
+                        <img src="{{ sponsorship.image_url }}" alt="{{ sponsorship.title }}" class="card-image" loading="lazy">
+                        <div class="pixel-sponsor-badge">Sponsored</div>
+                        <div class="card-overlay">
+                            <h3 class="card-title">{{ sponsorship.title }}</h3>
+                            <p class="card-creator">by {{ sponsorship.client_name }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <!-- Regular Prompts -->
+            {% for prompt in prompts.items %}
+                <div class="pixel-prompt-card" data-prompt-id="{{ prompt.id }}" onclick="openPromptModal({{ prompt.id }}, '{{ prompt.slug }}')">
+                    <div class="card-image-container">
+                        <img src="{{ prompt.image_url }}" alt="{{ prompt.title }}" class="card-image" loading="lazy">
+                        <div class="pixel-category-badge">{{ prompt.category.name }}</div>
+                        <div class="card-overlay">
+                            <h3 class="card-title">{{ prompt.title }}</h3>
+                            <p class="card-creator">by {{ prompt.creator.username }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Empty State -->
+        {% if prompts.total == 0 %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-image"></i>
+                </div>
+                <h3>No prompts found</h3>
+                <p>No prompts available in this category. Try selecting a different category or add some prompts.</p>
+                {% if current_user.is_authenticated and current_user.is_admin %}
+                    <a href="{{ url_for('add_prompt') }}" class="pixel-btn pixel-btn-primary">Add First Prompt</a>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <!-- Pagination -->
+        {% if prompts.has_prev or prompts.has_next %}
+            <div class="pagination-wrapper">
+                <hr class="divider">
+                <div class="pagination-buttons">
+                    {% if prompts.has_prev %}
+                        <a href="{{ (url_for('category_page', slug=selected_category_slug, page=prompts.prev_num) if selected_category_slug else url_for('gallery', page=prompts.prev_num, category=selected_category)) }}" 
+                           class="pixel-btn">Previous</a>
+                    {% endif %}
+                    {% if prompts.has_next %}
+                        <a href="{{ (url_for('category_page', slug=selected_category_slug, page=prompts.next_num) if selected_category_slug else url_for('gallery', page=prompts.next_num, category=selected_category)) }}" 
+                           class="pixel-btn pixel-btn-primary">Show More</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Mobile Bottom Navbar -->
+    <nav class="mobile-navbar">
+        <a href="{{ url_for('index') }}">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('gallery') }}" class="active">
+            <div class="nav-icon"><i class="fas fa-th"></i></div>
+            <span>Explore</span>
+        </a>
+        {% if current_user.is_authenticated and current_user.is_admin %}
+            <a href="{{ url_for('add_prompt') }}">
+                <div class="nav-icon"><i class="fas fa-plus"></i></div>
+                <span>Upload</span>
+            </a>
+        {% endif %}
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('saved_prompts') }}">
+                <div class="nav-icon"><i class="fas fa-bookmark"></i></div>
+                <span>Saved</span>
+            </a>
+            <a href="{{ url_for('profile') }}">
+                <div class="nav-icon"><i class="fas fa-user"></i></div>
+                <span>Profile</span>
+            </a>
+        {% else %}
+            <a href="{{ url_for('login') }}">
+                <div class="nav-icon"><i class="fas fa-sign-in-alt"></i></div>
+                <span>Login</span>
+            </a>
+        {% endif %}
+    </nav>
+
+    <!-- Prompt Detail Modal (Pixel-styled) -->
+    <div id="promptModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 11, 16, 0.95); z-index: 2000; overflow-y: auto; padding: 2rem 1rem;" onclick="closeModal(event)">
+        <div style="max-width: 900px; margin: 0 auto; background: rgba(26, 26, 31, 0.95); border: 2px solid var(--pixel-purple); border-radius: 12px; overflow: hidden;" onclick="event.stopPropagation()">
+            <div style="padding: 1.5rem; border-bottom: 2px solid var(--pixel-purple); display: flex; justify-content: space-between; align-items: center;">
+                <h2 id="modalTitle" style="font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: var(--pixel-cyan); margin: 0;"></h2>
+                <button onclick="closeModal()" style="background: none; border: 2px solid var(--pixel-purple); color: var(--pixel-white); font-size: 1.5rem; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; font-family: 'Press Start 2P', cursive;">×</button>
+            </div>
+            <div id="modalContent" style="padding: 1.5rem; font-family: 'VT323', monospace; font-size: 1.1rem; color: var(--pixel-white);"></div>
+        </div>
+    </div>
+
+    <script>
+        // Open prompt modal
+        function openPromptModal(promptId, slug) {
+            const modal = document.getElementById('promptModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+            
+            fetch(`/prompts/${slug}`)
+                .then(response => response.json())
+                .then(data => {
+                    modalTitle.textContent = data.title;
+                    
+                    let actionsHTML = '';
+                    if (data.can_edit) {
+                        actionsHTML = `<button onclick="editPrompt(${data.id})" class="pixel-btn" style="margin-top: 1rem;">Edit</button>`;
+                    }
+                    
+                    modalContent.innerHTML = `
+                        <div style="margin-bottom: 1.5rem;">
+                            <img src="${data.image_url}" alt="${data.title}" style="width: 100%; border-radius: 8px; border: 2px solid var(--pixel-purple);">
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <span style="padding: 0.4rem 0.8rem; background: rgba(157, 78, 221, 0.3); border: 1px solid var(--pixel-cyan); border-radius: 6px; display: inline-block; margin-right: 0.5rem;">${data.category}</span>
+                            <span style="color: var(--pixel-cyan);">by ${data.creator}</span>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <h4 style="color: var(--pixel-gold); font-family: 'Orbitron', sans-serif; margin-bottom: 0.5rem;">Description</h4>
+                            <p>${data.description}</p>
+                        </div>
+                        ${data.can_view_details ? `
+                            <div style="margin-bottom: 1rem;">
+                                <h4 style="color: var(--pixel-gold); font-family: 'Orbitron', sans-serif; margin-bottom: 0.5rem;">Prompt</h4>
+                                <div style="background: rgba(11, 11, 16, 0.8); padding: 1rem; border-radius: 8px; border: 2px solid var(--pixel-purple); position: relative;">
+                                    <p style="margin-bottom: 0;">${data.prompt_text}</p>
+                                    <button onclick="copyPrompt('${data.prompt_text.replace(/'/g, "\\'")}', event)" class="pixel-btn" style="margin-top: 1rem; font-size: 0.9rem;">Copy Prompt</button>
+                                </div>
+                            </div>
+                            <button onclick="toggleSave(${data.id}, event)" class="pixel-btn ${data.is_saved ? 'pixel-btn-primary' : ''}" style="margin-top: 1rem;">
+                                ${data.is_saved ? 'Unsave' : 'Save Prompt'}
+                            </button>
+                        ` : `
+                            <div style="background: rgba(157, 78, 221, 0.1); border: 2px solid var(--pixel-purple); border-radius: 8px; padding: 2rem; text-align: center; margin-top: 1rem;">
+                                <p style="font-size: 1.2rem; margin-bottom: 1rem;">Unlock full prompt details</p>
+                                ${data.can_start_trial ? 
+                                    '<a href="/subscription" class="pixel-btn pixel-btn-primary">Start Free Trial</a>' : 
+                                    '<a href="/subscription" class="pixel-btn pixel-btn-primary">Upgrade Now</a>'
+                                }
+                            </div>
+                        `}
+                        ${actionsHTML}
+                    `;
+                    
+                    modal.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Close modal
+        function closeModal(event) {
+            if (!event || event.target.id === 'promptModal') {
+                document.getElementById('promptModal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // Copy prompt text
+        function copyPrompt(text, event) {
+            event.stopPropagation();
+            navigator.clipboard.writeText(text).then(() => {
+                event.target.textContent = 'Copied!';
+                setTimeout(() => {
+                    event.target.textContent = 'Copy Prompt';
+                }, 2000);
+            });
+        }
+
+        // Toggle save
+        function toggleSave(promptId, event) {
+            event.stopPropagation();
+            fetch(`/save_prompt/${promptId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.saved) {
+                    event.target.textContent = 'Unsave';
+                    event.target.classList.add('pixel-btn-primary');
+                } else {
+                    event.target.textContent = 'Save Prompt';
+                    event.target.classList.remove('pixel-btn-primary');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // ESC key to close modal
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

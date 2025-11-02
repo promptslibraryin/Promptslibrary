@@ -53,7 +53,7 @@ def gallery():
     prompts = query.order_by(Prompt.id.desc()).paginate(page=page, per_page=per_page)
 
     return render_template(
-        'gallery.html',
+        'gallery-pixel.html',
         prompts=prompts,
         categories=categories,
         selected_category=category_id,
@@ -74,7 +74,7 @@ def category_page(slug):
     prompts = Prompt.query.filter_by(category_id=category.id).order_by(Prompt.id.desc()).paginate(page=page, per_page=per_page)
     categories = Category.query.all()
     return render_template(
-        'gallery.html',
+        'gallery-pixel.html',
         prompts=prompts,
         categories=categories,
         selected_category=category.id,
@@ -171,7 +171,7 @@ def login():
             return redirect(next_page) if next_page else redirect(url_for('index'))
         else:
             flash('Invalid username or password!', 'error')
-    return render_template('login.html')
+    return render_template('login-pixel.html')
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -184,15 +184,15 @@ def register():
         import re
         if not re.match(r'^[A-Za-z0-9_]+$', username):
             flash('Username can only contain letters, numbers, and underscores!', 'error')
-            return render_template('register.html')
+            return render_template('register-pixel.html')
 
         # Check if user already exists
         if User.query.filter_by(username=username).first():
             flash('Username already exists!', 'error')
-            return render_template('register.html')
+            return render_template('register-pixel.html')
         if User.query.filter_by(email=email).first():
             flash('Email already registered!', 'error')
-            return render_template('register.html')
+            return render_template('register-pixel.html')
         import random
         otp_code = str(random.randint(100000, 999999))
         user = User(
@@ -239,7 +239,7 @@ def register():
 
         login_user(user)
         return redirect(url_for('otp_verify'))
-    return render_template('register.html')
+    return render_template('register-pixel.html')
 
 @app.route('/otp_verify', methods=['GET', 'POST'])
 @login_required
@@ -294,7 +294,7 @@ def otp_verify():
                 return redirect(url_for('index'))
             else:
                 error = 'Invalid OTP. Please try again.'
-    return render_template('otp_verify.html', error=error)
+    return render_template('otp-verify-pixel.html', error=error)
 
 
 @app.route('/forgot_password', methods=['GET', 'POST'])
@@ -347,7 +347,7 @@ def forgot_password():
         else:
             flash('Email not found. Please check your email address.', 'error')
     
-    return render_template('forgot_password.html')
+    return render_template('forgot-password-pixel.html')
 
 @app.route('/reset_password', methods=['GET', 'POST'])
 def reset_password():
@@ -373,11 +373,11 @@ def reset_password():
         
         if otp != user.otp_code:
             flash('Invalid OTP. Please try again.', 'error')
-            return render_template('reset_password.html', email=email)
+            return render_template('reset-password-pixel.html', email=email)
         
         if new_password != confirm_password:
             flash('Passwords do not match.', 'error')
-            return render_template('reset_password.html', email=email)
+            return render_template('reset-password-pixel.html', email=email)
         
         # Update password
         user.password_hash = generate_password_hash(new_password)
@@ -387,7 +387,7 @@ def reset_password():
         flash('Password reset successful. You can now login with your new password.', 'success')
         return redirect(url_for('login'))
     
-    return render_template('reset_password.html', email=email)
+    return render_template('reset-password-pixel.html', email=email)
 
 @app.route('/logout')
 @login_required
@@ -430,13 +430,13 @@ def add_prompt():
                 image_url = f'/static/uploads/prompts/{unique_filename}'
             else:
                 flash('Please select a valid image file (PNG, JPG, JPEG, GIF, WebP)', 'error')
-                return render_template('add_prompt.html', categories=categories)
+                return render_template('add_prompt-pixel.html', categories=categories)
         else:
             image_url = request.form.get('image_url', '')
         
         if not image_url:
             flash('Please provide an image URL or upload an image file', 'error')
-            return render_template('add_prompt.html', categories=categories)
+            return render_template('add_prompt-pixel.html', categories=categories)
         
         prompt = Prompt(
             title=title,
@@ -453,7 +453,7 @@ def add_prompt():
         flash('Prompt added successfully!', 'success')
         return redirect(url_for('my_prompts'))
     
-    return render_template('add_prompt.html', categories=categories)
+    return render_template('add_prompt-pixel.html', categories=categories)
 
 
 @app.route('/my_prompts')
@@ -468,7 +468,7 @@ def my_prompts():
     
     prompts = query.all()
     
-    return render_template('my_prompts.html', prompts=prompts[::-1], categories=categories, selected_category=category_id)
+    return render_template('my_prompts-pixel.html', prompts=prompts[::-1], categories=categories, selected_category=category_id)
 
 
 @app.route('/edit_prompt/<int:prompt_id>', methods=['POST'])
@@ -525,7 +525,7 @@ def delete_prompt(prompt_id):
 @login_required
 def saved_prompts():
     saved = db.session.query(Prompt).join(SavedPrompt).filter(SavedPrompt.user_id == current_user.id).all()
-    return render_template('saved_prompts.html', prompts=saved[::-1])
+    return render_template('saved-prompts-pixel.html', prompts=saved[::-1])
 
 
 @app.route('/save_prompt/<int:prompt_id>', methods=['POST'])
@@ -560,8 +560,8 @@ def unsave_prompt(prompt_id):
 @app.route('/subscription',methods=['GET','POST'])
 def subscription():
     if request.method=='POST':
-        return render_template('subscription.html')
-    return render_template('subscription.html')
+        return render_template('subscription-pixel.html')
+    return render_template('subscription-pixel.html')
 
 
 @app.route('/payment', methods=['GET', 'POST'])
@@ -581,7 +581,7 @@ def payment():
             payment_capture="1"
         ))
 
-        return render_template('payment.html', 
+        return render_template('payment-pixel.html', 
                                 plan=plan, 
                                 plan_name=plan_name,
                                 amount=amount, 
@@ -669,7 +669,7 @@ def profile():
         flash('Profile updated successfully!', 'success')
         return redirect(url_for('profile'))
 
-    return render_template('profile.html')
+    return render_template('profile-pixel.html')
 
 
 def allowed_file(filename):
@@ -884,7 +884,7 @@ def public_profile(username):
     user = User.query.filter_by(username=username).first_or_404()
     prompts = Prompt.query.filter_by(user_id=user.id).order_by(Prompt.created_at.desc()).limit(12).all()
     total_prompts = Prompt.query.filter_by(user_id=user.id).count()
-    return render_template('public_profile.html', user=user, prompts=prompts, total_prompts=total_prompts)
+    return render_template('public_profile-pixel.html', user=user, prompts=prompts, total_prompts=total_prompts)
 
 @app.route('/admin/users')
 @login_required

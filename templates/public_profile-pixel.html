@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user.username }} - AI Prompt Creator | Prompts Library</title>
+    <meta name="description" content="{{ user.bio[:160] if user.bio else user.username + ' is an AI prompt creator on Prompts Library. View their collection of ' + total_prompts|string + ' creative prompts for ChatGPT, Midjourney, and more.' }}">
+    
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon-16x16.png">
+    
+    <link href="{{ url_for('static', filename='css/pixel-gallery.css') }}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+</head>
+<body class="pixel-theme">
+    
+    <!-- Pixel Header -->
+    <header class="pixel-header">
+        <a href="{{ url_for('index') }}" class="pixel-logo">
+            <img src="{{ url_for('static', filename='images/eagle-logo.jpg') }}" alt="Prompts Library Logo">
+            <span>Prompts-Library</span>
+        </a>
+        <nav class="pixel-nav">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('gallery') }}">Explore</a>
+            {% if current_user.is_authenticated %}
+                {% if current_user.is_admin %}
+                    <a href="{{ url_for('add_prompt') }}">Upload</a>
+                    <a href="{{ url_for('my_prompts') }}">My Prompts</a>
+                {% endif %}
+                <a href="{{ url_for('saved_prompts') }}">Saved</a>
+                <a href="{{ url_for('profile') }}">Profile</a>
+                {% if current_user.is_admin %}
+                    <a href="{{ url_for('admin_users') }}">Admin</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Sign Up</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <div class="pixel-container">
+        <!-- Profile Header -->
+        <div style="background: rgba(26, 26, 31, 0.6); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 2.5rem; margin-bottom: 2rem;">
+            <div style="display: grid; grid-template-columns: auto 1fr; gap: 2rem; align-items: start;">
+                <!-- Profile Image -->
+                <div style="text-align: center;">
+                    <img src="{{ user.profile_pic or url_for('static', filename='images/default-profile.svg') }}" 
+                         alt="{{ user.username }}" 
+                         style="width: 180px; height: 180px; border-radius: 50%; object-fit: cover; border: 4px solid var(--pixel-cyan); box-shadow: 0 0 30px rgba(0, 255, 255, 0.5); margin-bottom: 1rem;">
+                    {% if user.is_subscribed %}
+                        <div style="background: rgba(255, 215, 0, 0.2); border: 2px solid var(--pixel-gold); border-radius: 8px; padding: 0.5rem 1rem; font-family: 'Press Start 2P', cursive; font-size: 0.7rem; color: var(--pixel-gold);">
+                            <i class="fas fa-star"></i> Premium Creator
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Profile Info -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <h1 style="font-family: 'Press Start 2P', cursive; font-size: 1.8rem; background: linear-gradient(135deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem;">
+                                {{ user.username }}
+                            </h1>
+                            <p style="font-family: 'VT323', monospace; font-size: 1.1rem; color: rgba(248, 249, 250, 0.7);">
+                                <i class="fas fa-calendar"></i> Joined {{ user.created_at.strftime('%B %Y') }}
+                            </p>
+                        </div>
+                        {% if current_user.is_authenticated and current_user.id == user.id %}
+                            <a href="{{ url_for('profile') }}" class="pixel-btn" style="font-size: 0.9rem;">
+                                <i class="fas fa-edit"></i> Edit Profile
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Bio -->
+                    {% if user.bio %}
+                    <div style="background: rgba(157, 78, 221, 0.1); border: 2px solid var(--pixel-purple); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                        <h6 style="font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 0.8rem;">
+                            <i class="fas fa-info-circle"></i> About
+                        </h6>
+                        <p style="font-family: 'VT323', monospace; font-size: 1.1rem; color: var(--pixel-white); line-height: 1.6; margin: 0;">
+                            {{ user.bio }}
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Social Links -->
+                    {% if user.instagram_id or user.twitter_url or user.github_url or user.linkedin_url or user.portfolio_url %}
+                    <div style="margin-bottom: 1.5rem;">
+                        <h6 style="font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 0.8rem;">
+                            <i class="fas fa-link"></i> Connect With Me
+                        </h6>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.8rem;">
+                            {% if user.instagram_id %}
+                            <a href="https://instagram.com/{{ user.instagram_id }}" target="_blank" rel="noopener noreferrer" class="pixel-btn" style="font-size: 0.9rem;">
+                                <i class="fab fa-instagram"></i> Instagram
+                            </a>
+                            {% endif %}
+                            {% if user.twitter_url %}
+                            <a href="{{ user.twitter_url }}" target="_blank" rel="noopener noreferrer" class="pixel-btn" style="font-size: 0.9rem;">
+                                <i class="fab fa-twitter"></i> Twitter
+                            </a>
+                            {% endif %}
+                            {% if user.github_url %}
+                            <a href="{{ user.github_url }}" target="_blank" rel="noopener noreferrer" class="pixel-btn" style="font-size: 0.9rem;">
+                                <i class="fab fa-github"></i> GitHub
+                            </a>
+                            {% endif %}
+                            {% if user.linkedin_url %}
+                            <a href="{{ user.linkedin_url }}" target="_blank" rel="noopener noreferrer" class="pixel-btn" style="font-size: 0.9rem;">
+                                <i class="fab fa-linkedin"></i> LinkedIn
+                            </a>
+                            {% endif %}
+                            {% if user.portfolio_url %}
+                            <a href="{{ user.portfolio_url }}" target="_blank" rel="noopener noreferrer" class="pixel-btn pixel-btn-primary" style="font-size: 0.9rem;">
+                                <i class="fas fa-globe"></i> Portfolio
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Stats -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                        <div style="background: rgba(157, 78, 221, 0.2); border: 2px solid var(--pixel-purple); border-radius: 8px; padding: 1.2rem; text-align: center;">
+                            <div style="font-size: 2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">
+                                <i class="fas fa-image"></i>
+                            </div>
+                            <h3 style="font-family: 'Press Start 2P', cursive; font-size: 1.2rem; color: var(--pixel-white); margin-bottom: 0.3rem;">{{ total_prompts }}</h3>
+                            <small style="font-family: 'VT323', monospace; font-size: 1rem; color: rgba(248, 249, 250, 0.7);">Total Prompts</small>
+                        </div>
+                        <div style="background: rgba(0, 255, 255, 0.1); border: 2px solid var(--pixel-cyan); border-radius: 8px; padding: 1.2rem; text-align: center;">
+                            <div style="font-size: 2rem; color: var(--pixel-purple); margin-bottom: 0.5rem;">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <h3 style="font-family: 'Press Start 2P', cursive; font-size: 0.8rem; color: var(--pixel-white); margin-bottom: 0.3rem;">{{ user.created_at.strftime('%b %Y') }}</h3>
+                            <small style="font-family: 'VT323', monospace; font-size: 1rem; color: rgba(248, 249, 250, 0.7);">Member Since</small>
+                        </div>
+                        <div style="background: rgba(255, 215, 0, 0.1); border: 2px solid var(--pixel-gold); border-radius: 8px; padding: 1.2rem; text-align: center;">
+                            <div style="font-size: 2rem; color: var(--pixel-gold); margin-bottom: 0.5rem;">
+                                <i class="fas fa-award"></i>
+                            </div>
+                            <h3 style="font-family: 'Press Start 2P', cursive; font-size: 0.9rem; color: var(--pixel-white); margin-bottom: 0.3rem;">{{ 'Premium' if user.is_subscribed else 'Free' }}</h3>
+                            <small style="font-family: 'VT323', monospace; font-size: 1rem; color: rgba(248, 249, 250, 0.7);">Membership</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prompts Section -->
+        {% if prompts %}
+        <div class="page-header">
+            <h2 class="page-title">Recent Prompts by {{ user.username }}</h2>
+            <p class="page-subtitle">{{ total_prompts }} total prompts created</p>
+        </div>
+
+        <div class="prompt-grid">
+            {% for prompt in prompts %}
+                <div class="pixel-prompt-card" onclick="window.location.href='/prompt/{{ prompt.id }}'">
+                    <div class="card-image-container">
+                        <img src="{{ prompt.image_url }}" alt="{{ prompt.title }}" class="card-image" loading="lazy">
+                        <div class="pixel-category-badge">{{ prompt.category.name }}</div>
+                        <div class="card-overlay">
+                            <h3 class="card-title">{{ prompt.title }}</h3>
+                            <p class="card-creator">{{ prompt.created_at.strftime('%b %d, %Y') }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 4rem 2rem;">
+            <div style="font-size: 4rem; color: var(--pixel-purple); margin-bottom: 1.5rem;">
+                <i class="fas fa-image"></i>
+            </div>
+            <h3 style="font-family: 'Press Start 2P', cursive; font-size: 1.2rem; color: var(--pixel-white); margin-bottom: 1rem;">
+                No prompts yet
+            </h3>
+            <p style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.7);">
+                {{ user.username }} hasn't created any prompts yet. Check back later!
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Mobile Bottom Navbar -->
+    <nav class="mobile-navbar">
+        <a href="{{ url_for('index') }}">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('gallery') }}">
+            <div class="nav-icon"><i class="fas fa-th"></i></div>
+            <span>Explore</span>
+        </a>
+        {% if current_user.is_authenticated and current_user.is_admin %}
+            <a href="{{ url_for('add_prompt') }}">
+                <div class="nav-icon"><i class="fas fa-plus"></i></div>
+                <span>Upload</span>
+            </a>
+        {% endif %}
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('saved_prompts') }}">
+                <div class="nav-icon"><i class="fas fa-bookmark"></i></div>
+                <span>Saved</span>
+            </a>
+            <a href="{{ url_for('profile') }}">
+                <div class="nav-icon"><i class="fas fa-user"></i></div>
+                <span>Profile</span>
+            </a>
+        {% else %}
+            <a href="{{ url_for('login') }}">
+                <div class="nav-icon"><i class="fas fa-sign-in-alt"></i></div>
+                <span>Login</span>
+            </a>
+        {% endif %}
+    </nav>
+
+    <script>
+        // Responsive grid adjustment
+        if (window.innerWidth <= 768) {
+            const profileGrid = document.querySelector('[style*="grid-template-columns: auto 1fr"]');
+            if (profileGrid) {
+                profileGrid.style.gridTemplateColumns = '1fr';
+                profileGrid.style.textAlign = 'center';
+            }
+        }
+    </script>
+</body>
+</html>

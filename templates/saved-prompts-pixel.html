@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Prompts - Prompts Library</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
+    <link href="{{ url_for('static', filename='css/pixel-gallery.css') }}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+</head>
+<body class="pixel-theme">
+    <header class="pixel-header">
+        <a href="{{ url_for('index') }}" class="pixel-logo">
+            <img src="{{ url_for('static', filename='images/eagle-logo.jpg') }}" alt="Prompts Library Logo">
+            <span>Prompts-Library</span>
+        </a>
+        <nav class="pixel-nav">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('gallery') }}">Explore</a>
+            <a href="{{ url_for('profile') }}">Profile</a>
+        </nav>
+    </header>
+
+    <div class="pixel-container">
+        <div style="padding: 2rem 0; text-align: center;">
+            <h1 style="font-family: 'Press Start 2P', cursive; font-size: 1.8rem; background: linear-gradient(135deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; filter: drop-shadow(0 0 15px #FFD700);">Saved Prompts</h1>
+            <p style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.7);">Your bookmarked prompts collection</p>
+        </div>
+
+        {% if prompts %}
+            <div class="prompt-grid">
+                {% for prompt in prompts %}
+                    <div class="prompt-card" data-prompt-id="{{ prompt.id }}">
+                        <div class="prompt-image">
+                            <img src="{{ prompt.image_url }}" alt="{{ prompt.title }}" loading="lazy">
+                            <div class="prompt-overlay">
+                                <div class="prompt-category">{{ prompt.category.name }}</div>
+                                <button class="unsave-btn" onclick="unsavePrompt('{{ prompt.id }}')" title="Remove from saved">
+                                    <i class="fas fa-bookmark"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="prompt-info">
+                            <h3 class="prompt-title">{{ prompt.title }}</h3>
+                            <p class="prompt-creator">by {{ prompt.creator.username }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 4rem 2rem;">
+                <i class="fas fa-bookmark" style="font-size: 4rem; color: var(--pixel-purple); opacity: 0.5; margin-bottom: 2rem;"></i>
+                <h2 style="font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: var(--pixel-white); margin-bottom: 1rem;">No saved prompts yet</h2>
+                <p style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.7); margin-bottom: 2rem;">You haven't saved any prompts yet. Browse the gallery and save prompts you find interesting!</p>
+                <a href="{{ url_for('gallery') }}" class="pixel-btn pixel-btn-primary" style="display: inline-block; padding: 1rem 2rem; font-size: 1.1rem; text-decoration: none;">
+                    <i class="fas fa-search" style="margin-right: 0.5rem;"></i>Browse Gallery
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <nav class="mobile-navbar">
+        <a href="{{ url_for('index') }}">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('gallery') }}">
+            <div class="nav-icon"><i class="fas fa-th"></i></div>
+            <span>Explore</span>
+        </a>
+        <a href="{{ url_for('saved_prompts') }}" class="active">
+            <div class="nav-icon"><i class="fas fa-bookmark"></i></div>
+            <span>Saved</span>
+        </a>
+        <a href="{{ url_for('profile') }}">
+            <div class="nav-icon"><i class="fas fa-user"></i></div>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <script>
+    function unsavePrompt(promptId) {
+        if (confirm('Remove this prompt from your saved collection?')) {
+            fetch(`/unsave_prompt/${promptId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const promptCard = document.querySelector(`[data-prompt-id="${promptId}"]`);
+                    if (promptCard) {
+                        promptCard.style.animation = 'fadeOut 0.3s ease';
+                        setTimeout(() => promptCard.remove(), 300);
+                    }
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    }
+    </script>
+</body>
+</html>

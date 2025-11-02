@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Prompts Library</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon-16x16.png">
+    
+    <link href="{{ url_for('static', filename='css/pixel-gallery.css') }}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+</head>
+<body class="pixel-theme">
+    
+    <!-- Pixel Header -->
+    <header class="pixel-header">
+        <a href="{{ url_for('index') }}" class="pixel-logo">
+            <img src="{{ url_for('static', filename='images/eagle-logo.jpg') }}" alt="Prompts Library Logo">
+            <span>Prompts-Library</span>
+        </a>
+        <nav class="pixel-nav">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('gallery') }}">Explore</a>
+            {% if current_user.is_authenticated %}
+                {% if current_user.is_admin %}
+                    <a href="{{ url_for('add_prompt') }}">Upload</a>
+                    <a href="{{ url_for('my_prompts') }}">My Prompts</a>
+                {% endif %}
+                <a href="{{ url_for('saved_prompts') }}">Saved</a>
+                <a href="{{ url_for('profile') }}" class="active">Profile</a>
+                {% if current_user.is_admin %}
+                    <a href="{{ url_for('admin_users') }}">Admin</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Sign Up</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="pixel-container" style="padding-top: 1rem;">
+                {% for category, message in messages %}
+                    <div style="padding: 1rem; margin-bottom: 1rem; background: rgba(157, 78, 221, 0.2); border: 2px solid var(--pixel-purple); border-radius: 8px; font-family: 'VT323', monospace; font-size: 1.1rem;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <div class="pixel-container">
+        <div class="page-header">
+            <h1 class="page-title">User Profile</h1>
+            <p class="page-subtitle">Manage your account settings</p>
+        </div>
+
+        <div style="max-width: 900px; margin: 0 auto;">
+            <form method="POST" enctype="multipart/form-data">
+                <!-- Profile Picture Section -->
+                <div style="background: rgba(26, 26, 31, 0.6); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <div style="position: relative; display: inline-block;">
+                            <img src="{{ current_user.profile_pic or url_for('static', filename='images/default-profile.svg') }}" 
+                                 alt="Profile Picture" 
+                                 id="profileImage"
+                                 style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid var(--pixel-cyan); box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);">
+                            <label for="profile_pic" style="position: absolute; bottom: 0; right: 0; background: var(--pixel-purple); border: 2px solid var(--pixel-cyan); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;">
+                                <i class="fas fa-camera" style="color: white; font-size: 1.2rem;"></i>
+                            </label>
+                            <input type="file" id="profile_pic" name="profile_pic" accept="image/*" style="display: none;">
+                        </div>
+                        <div style="margin-top: 1rem; font-family: 'VT323', monospace; font-size: 1.1rem; color: rgba(248, 249, 250, 0.7);">
+                            Click the camera icon to update profile picture
+                        </div>
+                    </div>
+
+                    <!-- Basic Info -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <label style="display: block; font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">
+                                <i class="fas fa-user"></i> Username
+                            </label>
+                            <input type="text" id="username" name="username" value="{{ current_user.username }}" 
+                                   pattern="^[A-Za-z0-9_]+$" required
+                                   style="width: 100%; padding: 0.8rem; font-size: 1.1rem; font-family: 'VT323', monospace; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; color: var(--pixel-white); transition: all 0.3s ease;"
+                                   onfocus="this.style.borderColor='var(--pixel-cyan)'; this.style.boxShadow='0 0 10px var(--pixel-cyan)'"
+                                   onblur="this.style.borderColor='var(--pixel-purple)'; this.style.boxShadow='none'">
+                            <small style="font-family: 'VT323', monospace; font-size: 0.9rem; color: rgba(248, 249, 250, 0.6);">Only letters, numbers, and underscores</small>
+                        </div>
+                        <div>
+                            <label style="display: block; font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">
+                                <i class="fas fa-envelope"></i> Email
+                            </label>
+                            <input type="email" id="email" name="email" value="{{ current_user.email }}" readonly
+                                   style="width: 100%; padding: 0.8rem; font-size: 1.1rem; font-family: 'VT323', monospace; background: rgba(11, 11, 16, 0.5); border: 2px solid rgba(157, 78, 221, 0.5); border-radius: 8px; color: rgba(248, 249, 250, 0.6);">
+                        </div>
+                    </div>
+
+                    <!-- Bio -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">
+                            <i class="fas fa-edit"></i> Bio
+                        </label>
+                        <textarea id="bio" name="bio" rows="3" 
+                                  style="width: 100%; padding: 0.8rem; font-size: 1.1rem; font-family: 'VT323', monospace; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; color: var(--pixel-white); resize: vertical; transition: all 0.3s ease;"
+                                  onfocus="this.style.borderColor='var(--pixel-cyan)'; this.style.boxShadow='0 0 10px var(--pixel-cyan)'"
+                                  onblur="this.style.borderColor='var(--pixel-purple)'; this.style.boxShadow='none'"
+                                  placeholder="Tell us about yourself...">{{ current_user.bio or '' }}</textarea>
+                        <small style="font-family: 'VT323', monospace; font-size: 0.9rem; color: rgba(248, 249, 250, 0.6);">This will be displayed on your public profile</small>
+                    </div>
+                </div>
+
+                <!-- Social Links Section -->
+                <div style="background: rgba(26, 26, 31, 0.6); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
+                    <h3 style="font-family: 'Press Start 2P', cursive; font-size: 1rem; background: linear-gradient(135deg, var(--pixel-purple), var(--pixel-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1.5rem;">
+                        <i class="fas fa-link"></i> Social Links & Portfolio
+                    </h3>
+                    <p style="font-family: 'VT323', monospace; font-size: 1rem; color: rgba(248, 249, 250, 0.7); margin-bottom: 1.5rem;">
+                        Add your social media profiles and portfolio to help others connect with you
+                    </p>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div>
+                            <label style="display: block; font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">
+                                <i class="fab fa-instagram"></i> Instagram
+                            </label>
+                            <div style="display: flex; align-items: center; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; transition: all 0.3s ease;" 
+                                 onfocus="this.style.borderColor='var(--pixel-cyan)'; this.style.boxShadow='0 0 10px var(--pixel-cyan)'"
+                                 onblur="this.style.borderColor='var(--pixel-purple)'; this.style.boxShadow='none'">
+                                <span style="padding: 0.8rem; font-family: 'VT323', monospace; font-size: 1.1rem; color: var(--pixel-purple); border-right: 2px solid var(--pixel-purple);">@</span>
+                                <input type="text" id="instagram_id" name="instagram_id" value="{{ current_user.instagram_id or '' }}" placeholder="your_handle"
+                                       style="flex: 1; padding: 0.8rem; font-size: 1.1rem; font-family: 'VT323', monospace; background: transparent; border: none; color: var(--pixel-white); outline: none;">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">
+                                <i class="fab fa-twitter"></i> Twitter / X
+                            </label>
+                            <input type="url" id="twitter_url" name="twitter_url" value="{{ current_user.twitter_url or '' }}" placeholder="https://twitter.com/username"
+                                   style="width: 100%; padding: 0.8rem; font-size: 1.1rem; font-family: 'VT323', monospace; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; color: var(--pixel-white); transition: all 0.3s ease;"
+                                   onfocus="this.style.borderColor='var(--pixel-cyan)'; this.style.boxShadow='0 0 10px var(--pixel-cyan)'"
+                                   onblur="this.style.borderColor='var(--pixel-purple)'; this.style.boxShadow='none'">
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">
+                                <i class="fab fa-github"></i> GitHub
+                            </label>
+                            <input type="url" id="github_url" name="github_url" value="{{ current_user.github_url or '' }}" placeholder="https://github.com/username"
+                                   style="width: 100%; padding: 0.8rem; font-size: 1.1rem; font-family: 'VT323', monospace; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; color: var(--pixel-white); transition: all 0.3s ease;"
+                                   onfocus="this.style.borderColor='var(--pixel-cyan)'; this.style.boxShadow='0 0 10px var(--pixel-cyan)'"
+                                   onblur="this.style.borderColor='var(--pixel-purple)'; this.style.boxShadow='none'">
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">
+                                <i class="fab fa-linkedin"></i> LinkedIn
+                            </label>
+                            <input type="url" id="linkedin_url" name="linkedin_url" value="{{ current_user.linkedin_url or '' }}" placeholder="https://linkedin.com/in/username"
+                                   style="width: 100%; padding: 0.8rem; font-size: 1.1rem; font-family: 'VT323', monospace; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; color: var(--pixel-white); transition: all 0.3s ease;"
+                                   onfocus="this.style.borderColor='var(--pixel-cyan)'; this.style.boxShadow='0 0 10px var(--pixel-cyan)'"
+                                   onblur="this.style.borderColor='var(--pixel-purple)'; this.style.boxShadow='none'">
+                        </div>
+
+                        <div style="grid-column: 1 / -1;">
+                            <label style="display: block; font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">
+                                <i class="fas fa-globe"></i> Portfolio / Website
+                            </label>
+                            <input type="url" id="portfolio_url" name="portfolio_url" value="{{ current_user.portfolio_url or '' }}" placeholder="https://yourwebsite.com"
+                                   style="width: 100%; padding: 0.8rem; font-size: 1.1rem; font-family: 'VT323', monospace; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; color: var(--pixel-white); transition: all 0.3s ease;"
+                                   onfocus="this.style.borderColor='var(--pixel-cyan)'; this.style.boxShadow='0 0 10px var(--pixel-cyan)'"
+                                   onblur="this.style.borderColor='var(--pixel-purple)'; this.style.boxShadow='none'">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subscription Status Section -->
+                <div style="background: rgba(26, 26, 31, 0.6); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
+                    <h3 style="font-family: 'Press Start 2P', cursive; font-size: 1rem; background: linear-gradient(135deg, var(--pixel-gold), var(--pixel-orange)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1.5rem;">
+                        <i class="fas fa-star"></i> Subscription Status
+                    </h3>
+                    
+                    {% if current_user.is_subscribed %}
+                        <div style="padding: 1.5rem; background: rgba(0, 255, 0, 0.1); border: 2px solid #00FF00; border-radius: 8px; display: flex; align-items: center; gap: 1rem;">
+                            <i class="fas fa-check-circle" style="font-size: 2rem; color: #00FF00;"></i>
+                            <div>
+                                <div style="font-family: 'Press Start 2P', cursive; font-size: 0.9rem; color: #00FF00; margin-bottom: 0.5rem;">Premium Member</div>
+                                {% if current_user.subscription_expiry %}
+                                    <div style="font-family: 'VT323', monospace; font-size: 1.1rem; color: rgba(248, 249, 250, 0.8);">
+                                        Expires on {{ current_user.subscription_expiry.strftime('%B %d, %Y') }}
+                                    </div>
+                                {% else %}
+                                    <div style="font-family: 'VT323', monospace; font-size: 1.1rem; color: rgba(248, 249, 250, 0.8);">
+                                        Active subscription
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div style="padding: 1.5rem; background: rgba(0, 255, 255, 0.1); border: 2px solid var(--pixel-cyan); border-radius: 8px; display: flex; align-items: center; gap: 1rem;">
+                            <i class="fas fa-info-circle" style="font-size: 2rem; color: var(--pixel-cyan);"></i>
+                            <div>
+                                <div style="font-family: 'Press Start 2P', cursive; font-size: 0.9rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">Free Account</div>
+                                <div style="font-family: 'VT323', monospace; font-size: 1.1rem; color: rgba(248, 249, 250, 0.8);">
+                                    <a href="{{ url_for('subscription') }}" style="color: var(--pixel-gold); text-decoration: none; text-shadow: 0 0 5px var(--pixel-gold);">Upgrade to Premium</a> for full access to all features
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <button type="submit" class="pixel-btn pixel-btn-primary" style="padding: 1rem 2rem;">
+                        <i class="fas fa-save"></i> Update Profile
+                    </button>
+                    <a href="{{ url_for('gallery') }}" class="pixel-btn" style="padding: 1rem 2rem; text-decoration: none;">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navbar -->
+    <nav class="mobile-navbar">
+        <a href="{{ url_for('index') }}">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('gallery') }}">
+            <div class="nav-icon"><i class="fas fa-th"></i></div>
+            <span>Explore</span>
+        </a>
+        {% if current_user.is_authenticated and current_user.is_admin %}
+            <a href="{{ url_for('add_prompt') }}">
+                <div class="nav-icon"><i class="fas fa-plus"></i></div>
+                <span>Upload</span>
+            </a>
+        {% endif %}
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('saved_prompts') }}">
+                <div class="nav-icon"><i class="fas fa-bookmark"></i></div>
+                <span>Saved</span>
+            </a>
+            <a href="{{ url_for('profile') }}" class="active">
+                <div class="nav-icon"><i class="fas fa-user"></i></div>
+                <span>Profile</span>
+            </a>
+        {% else %}
+            <a href="{{ url_for('login') }}">
+                <div class="nav-icon"><i class="fas fa-sign-in-alt"></i></div>
+                <span>Login</span>
+            </a>
+        {% endif %}
+    </nav>
+
+    <script>
+        // Profile picture preview
+        document.getElementById('profile_pic').addEventListener('change', function(e) {
+            if (e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profileImage').src = e.target.result;
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+        // Username validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const username = document.getElementById('username').value;
+            const pattern = /^[A-Za-z0-9_]+$/;
+
+            if (!pattern.test(username)) {
+                e.preventDefault();
+                alert('Username can only contain letters, numbers, and underscores!');
+                return false;
+            }
+        });
+
+        // Responsive grid for mobile
+        if (window.innerWidth <= 768) {
+            const grids = document.querySelectorAll('[style*="grid-template-columns: 1fr 1fr"]');
+            grids.forEach(grid => {
+                grid.style.gridTemplateColumns = '1fr';
+            });
+        }
+    </script>
+</body>
+</html>

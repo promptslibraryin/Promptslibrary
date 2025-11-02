@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Plans - Prompts Library</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
+    <link href="{{ url_for('static', filename='css/pixel-gallery.css') }}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <style>
+        .plan-card { background: rgba(26, 26, 31, 0.9); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; transition: all 0.3s ease; }
+        .plan-card:hover { border-color: var(--pixel-cyan); box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); transform: translateY(-5px); }
+        .plan-price { font-family: 'Press Start 2P', cursive; font-size: 2.5rem; color: var(--pixel-gold); text-shadow: 0 0 10px var(--pixel-gold); }
+        .plan-badge { display: inline-block; padding: 0.3rem 1rem; background: linear-gradient(135deg, #FFD700, #FF8C00); color: #0B0B10; font-family: 'Press Start 2P', cursive; font-size: 0.7rem; border-radius: 4px; margin-bottom: 1rem; }
+        .feature-list { list-style: none; padding: 0; margin: 1.5rem 0; }
+        .feature-list li { padding: 0.5rem 0; font-family: 'VT323', monospace; font-size: 1.1rem; color: rgba(248, 249, 250, 0.9); }
+        .feature-list li i { color: var(--pixel-cyan); margin-right: 0.5rem; }
+    </style>
+</head>
+<body class="pixel-theme">
+    <header class="pixel-header">
+        <a href="{{ url_for('index') }}" class="pixel-logo">
+            <img src="{{ url_for('static', filename='images/eagle-logo.jpg') }}" alt="Prompts Library Logo">
+            <span>Prompts-Library</span>
+        </a>
+        <nav class="pixel-nav">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('gallery') }}">Explore</a>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('profile') }}">Profile</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <div class="pixel-container" style="padding: 2rem 1rem;">
+        <div style="text-align: center; margin-bottom: 3rem;">
+            <h1 style="font-family: 'Press Start 2P', cursive; font-size: 2rem; background: linear-gradient(135deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; filter: drop-shadow(0 0 15px #FFD700);">Choose Your Plan</h1>
+            <p style="font-family: 'VT323', monospace; font-size: 1.3rem; color: rgba(248, 249, 250, 0.8);">Unlock premium features and access all prompts</p>
+        </div>
+
+        {% if current_user.is_authenticated and current_user.is_subscribed %}
+            <div style="padding: 1.5rem; margin-bottom: 2rem; background: rgba(0, 255, 0, 0.1); border: 2px solid #00FF00; border-radius: 8px; font-family: 'VT323', monospace; font-size: 1.2rem; text-align: center;">
+                <i class="fas fa-check-circle" style="color: #00FF00; margin-right: 0.5rem;"></i>
+                <strong>You're already subscribed!</strong>
+                {% if current_user.subscription_expiry %}
+                    <br>Expires on {{ current_user.subscription_expiry.strftime('%B %d, %Y') }}
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; max-width: 900px; margin: 0 auto;">
+            <div class="plan-card">
+                <div class="plan-badge">AFFORDABLE</div>
+                <h2 style="font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: var(--pixel-white); margin-bottom: 1rem;">Monthly Plan</h2>
+                <div class="plan-price">₹79</div>
+                <p style="font-family: 'VT323', monospace; color: rgba(248, 249, 250, 0.7); margin: 0.5rem 0 1.5rem;">per month</p>
+                
+                <ul class="feature-list">
+                    <li><i class="fas fa-check"></i> View all prompt details</li>
+                    <li><i class="fas fa-check"></i> Copy prompt text</li>
+                    <li><i class="fas fa-check"></i> Save unlimited prompts</li>
+                    <li><i class="fas fa-check"></i> Create unlimited prompts</li>
+                    <li><i class="fas fa-check"></i> Upload custom images</li>
+                    <li><i class="fas fa-check"></i> Premium support</li>
+                    <li><i class="fas fa-star" style="color: var(--pixel-gold);"></i> <strong>1 month access</strong></li>
+                </ul>
+                
+                <form action="{{ url_for('payment') }}" method="POST">
+                    <input type="hidden" name="plan" value="monthly">
+                    <input type="hidden" name="amount" value="79">
+                    <input type="hidden" name="duration" value="1">
+                    <button type="submit" class="pixel-btn pixel-btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">Choose Monthly</button>
+                </form>
+            </div>
+
+            <div class="plan-card" style="border-color: var(--pixel-gold); box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);">
+                <div class="plan-badge" style="background: linear-gradient(135deg, #FFD700, #FFA500);">BEST VALUE</div>
+                <h2 style="font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: var(--pixel-gold); margin-bottom: 1rem;">Quarterly Plan</h2>
+                <div class="plan-price">₹199</div>
+                <p style="font-family: 'VT323', monospace; color: rgba(248, 249, 250, 0.7); margin: 0.5rem 0;">for 3 months</p>
+                <p style="font-family: 'VT323', monospace; color: #00FF00; font-size: 1.1rem; margin-bottom: 1.5rem;">Save ₹40!</p>
+                
+                <ul class="feature-list">
+                    <li><i class="fas fa-check"></i> View all prompt details</li>
+                    <li><i class="fas fa-check"></i> Copy prompt text</li>
+                    <li><i class="fas fa-check"></i> Save unlimited prompts</li>
+                    <li><i class="fas fa-check"></i> Create unlimited prompts</li>
+                    <li><i class="fas fa-check"></i> Upload custom images</li>
+                    <li><i class="fas fa-check"></i> Premium support</li>
+                    <li><i class="fas fa-star" style="color: var(--pixel-gold);"></i> <strong>3 months access</strong></li>
+                </ul>
+                
+                <form action="{{ url_for('payment') }}" method="POST">
+                    <input type="hidden" name="plan" value="quarterly">
+                    <input type="hidden" name="amount" value="199">
+                    <input type="hidden" name="duration" value="3">
+                    <button type="submit" class="pixel-btn pixel-btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem; background: linear-gradient(135deg, #9D4EDD, #7B2CBF);">Choose Quarterly</button>
+                </form>
+            </div>
+        </div>
+
+        {% if current_user.is_authenticated and (not current_user.is_subscribed) %}
+            <div style="text-align: center; margin-top: 3rem; padding: 2rem; background: rgba(0, 255, 255, 0.1); border: 2px solid var(--pixel-cyan); border-radius: 12px;">
+                <h3 style="font-family: 'Press Start 2P', cursive; font-size: 1.2rem; color: var(--pixel-gold); margin-bottom: 1rem;">Get 1 Month FREE!</h3>
+                <p style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.9); margin-bottom: 1.5rem;">Try Premium for 30 days at no cost. You can claim this free trial only once.</p>
+                <form action="{{ url_for('start_trial') }}" method="POST" style="display: inline-block;">
+                    <button type="submit" class="pixel-btn" style="padding: 1rem 2rem; font-size: 1.1rem; background: linear-gradient(135deg, #00FFFF, #00CED1); color: #0B0B10; font-weight: bold;">
+                        <i class="fas fa-gift" style="margin-right: 0.5rem;"></i>Start Free Trial
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+
+    <nav class="mobile-navbar">
+        <a href="{{ url_for('index') }}">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('gallery') }}">
+            <div class="nav-icon"><i class="fas fa-th"></i></div>
+            <span>Explore</span>
+        </a>
+        <a href="{{ url_for('subscription') }}" class="active">
+            <div class="nav-icon"><i class="fas fa-crown"></i></div>
+            <span>Premium</span>
+        </a>
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('profile') }}">
+                <div class="nav-icon"><i class="fas fa-user"></i></div>
+                <span>Profile</span>
+            </a>
+        {% endif %}
+    </nav>
+</body>
+</html>

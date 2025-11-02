@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - Prompts Library</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
+    <link href="{{ url_for('static', filename='css/pixel-gallery.css') }}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+</head>
+<body class="pixel-theme">
+    <header class="pixel-header">
+        <a href="{{ url_for('index') }}" class="pixel-logo">
+            <img src="{{ url_for('static', filename='images/eagle-logo.jpg') }}" alt="Prompts Library Logo">
+            <span>Prompts-Library</span>
+        </a>
+        <nav class="pixel-nav">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('gallery') }}">Explore</a>
+            <a href="{{ url_for('subscription') }}">Plans</a>
+        </nav>
+    </header>
+
+    <div class="pixel-container" style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 180px); padding: 2rem 1rem;">
+        <div style="width: 100%; max-width: 550px; background: rgba(26, 26, 31, 0.9); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 2.5rem; box-shadow: 0 8px 30px rgba(157, 78, 221, 0.3);">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <i class="fas fa-credit-card" style="font-size: 3rem; color: var(--pixel-gold); filter: drop-shadow(0 0 10px var(--pixel-gold));"></i>
+            </div>
+            <h1 style="font-family: 'Press Start 2P', cursive; font-size: 1.5rem; text-align: center; background: linear-gradient(135deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 2rem; filter: drop-shadow(0 0 10px #FFD700);">Complete Purchase</h1>
+            
+            <div style="background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem;">
+                <h2 style="font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 1rem;">Order Summary</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-family: 'VT323', monospace; font-size: 1.2rem;">
+                    <div>
+                        <strong style="color: var(--pixel-white);">{{ plan_name }} Plan</strong><br>
+                        <span style="color: rgba(248, 249, 250, 0.7); font-size: 1rem;">{{ duration }} month{% if duration > 1 %}s{% endif %} access</span>
+                    </div>
+                    <div style="font-family: 'Press Start 2P', cursive; font-size: 2rem; color: var(--pixel-gold);">₹{{ amount }}</div>
+                </div>
+            </div>
+
+            <form id="paymentForm" method="POST">
+                <input type="hidden" name="plan" value="{{ plan }}">
+                <input type="hidden" name="amount" value="{{ amount }}">
+                <input type="hidden" name="duration" value="{{ duration }}">
+                
+                <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                    <a href="{{ url_for('subscription') }}" class="pixel-btn" style="flex: 1; text-align: center; padding: 1rem; background: transparent; border: 2px solid var(--pixel-purple); color: var(--pixel-purple); text-decoration: none;">
+                        <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i>Back
+                    </a>
+                    <button id="rzp-button" type="button" class="pixel-btn pixel-btn-primary" style="flex: 2; padding: 1rem; font-size: 1.2rem;">
+                        <i class="fas fa-lock" style="margin-right: 0.5rem;"></i>Pay ₹{{ amount }}
+                    </button>
+                </div>
+            </form>
+
+            <div style="padding: 1rem; background: rgba(0, 255, 255, 0.1); border: 2px solid var(--pixel-cyan); border-radius: 8px; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: start; font-family: 'VT323', monospace; font-size: 1rem; color: rgba(248, 249, 250, 0.9);">
+                    <i class="fas fa-shield-alt" style="color: var(--pixel-cyan); margin-right: 0.5rem; margin-top: 0.2rem;"></i>
+                    <span><strong>Secure Payment:</strong> Your payment information is encrypted and secure.</span>
+                </div>
+            </div>
+
+            <div style="text-align: center;">
+                <h3 style="font-family: 'Press Start 2P', cursive; font-size: 0.9rem; color: #dc3545; margin-bottom: 1rem;">Check Before Purchase</h3>
+                <div style="font-family: 'VT323', monospace; font-size: 1.1rem;">
+                    <div style="margin-bottom: 0.5rem;">
+                        <a href="{{ url_for('cancellation_refund') }}" style="color: var(--pixel-cyan); text-decoration: none;">
+                            <i class="fas fa-file-alt" style="margin-right: 0.3rem;"></i>Cancellation & Refund Policy
+                        </a>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('shipping_delivery') }}" style="color: var(--pixel-cyan); text-decoration: none;">
+                            <i class="fas fa-file-alt" style="margin-right: 0.3rem;"></i>Shipping & Delivery Policy
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="mobile-navbar">
+        <a href="{{ url_for('index') }}">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('gallery') }}">
+            <div class="nav-icon"><i class="fas fa-th"></i></div>
+            <span>Explore</span>
+        </a>
+        <a href="{{ url_for('subscription') }}">
+            <div class="nav-icon"><i class="fas fa-crown"></i></div>
+            <span>Plans</span>
+        </a>
+        <a href="#" class="active">
+            <div class="nav-icon"><i class="fas fa-credit-card"></i></div>
+            <span>Payment</span>
+        </a>
+    </nav>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+    document.getElementById('rzp-button').onclick = function(e){
+        e.preventDefault();
+        var options = {
+            "key": "{{ razorpay_key }}",
+            "amount": "{{ amount*100 }}",
+            "currency": "INR",
+            "name": "Prompt Library",
+            "description": "{{ plan_name }} Plan",
+            "order_id": "{{ order_id }}",
+            "handler": function (response){
+                window.location.href = "{{ url_for('process_payment') }}?success=true&plan={{ plan }}&duration={{ duration }}";
+            },
+            "theme": {
+                "color": "#9D4EDD"
+            }
+        };
+        var rzp1 = new Razorpay(options);
+        rzp1.open();
+    }
+    </script>
+</body>
+</html>

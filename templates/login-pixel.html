@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Prompts Library</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
+    <link href="{{ url_for('static', filename='css/pixel-gallery.css') }}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+</head>
+<body class="pixel-theme">
+    <!-- Pixel Header -->
+    <header class="pixel-header">
+        <a href="{{ url_for('index') }}" class="pixel-logo">
+            <img src="{{ url_for('static', filename='images/eagle-logo.jpg') }}" alt="Prompts Library Logo">
+            <span>Prompts-Library</span>
+        </a>
+        <nav class="pixel-nav">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('gallery') }}">Explore</a>
+            <a href="{{ url_for('register') }}">Sign Up</a>
+        </nav>
+    </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="pixel-container" style="padding-top: 1rem;">
+                {% for category, message in messages %}
+                    <div style="padding: 1rem; margin-bottom: 1rem; background: rgba(157, 78, 221, 0.2); border: 2px solid var(--pixel-purple); border-radius: 8px; font-family: 'VT323', monospace; font-size: 1.1rem;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <div class="pixel-container" style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 180px);">
+        <div style="width: 100%; max-width: 450px; background: rgba(26, 26, 31, 0.9); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 2.5rem; box-shadow: 0 8px 30px rgba(157, 78, 221, 0.3);">
+            <h1 style="font-family: 'Press Start 2P', cursive; font-size: 1.5rem; text-align: center; background: linear-gradient(135deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 2rem; filter: drop-shadow(0 0 10px #FFD700);">Login</h1>
+            
+            <form method="POST" style="font-family: 'VT323', monospace;">
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="username" style="display: block; font-size: 1.1rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">Username or Email</label>
+                    <input type="text" id="username" name="username" required
+                           style="width: 100%; padding: 0.8rem; font-size: 1.1rem; font-family: 'VT323', monospace; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; color: var(--pixel-white); transition: all 0.3s ease;"
+                           onfocus="this.style.borderColor='var(--pixel-cyan)'; this.style.boxShadow='0 0 10px var(--pixel-cyan)'"
+                           onblur="this.style.borderColor='var(--pixel-purple)'; this.style.boxShadow='none'">
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="password" style="display: block; font-size: 1.1rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">Password</label>
+                    <input type="password" id="password" name="password" required
+                           style="width: 100%; padding: 0.8rem; font-size: 1.1rem; font-family: 'VT323', monospace; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; color: var(--pixel-white); transition: all 0.3s ease;"
+                           onfocus="this.style.borderColor='var(--pixel-cyan)'; this.style.boxShadow='0 0 10px var(--pixel-cyan)'"
+                           onblur="this.style.borderColor='var(--pixel-purple)'; this.style.boxShadow='none'">
+                </div>
+                
+                <div style="margin-bottom: 1.5rem; font-size: 0.9rem; color: rgba(248, 249, 250, 0.7);">
+                    <input type="checkbox" id="terms" name="terms" required style="margin-right: 0.5rem;">
+                    <label for="terms">I agree to the <a href="{{ url_for('terms_conditions') }}" target="_blank" style="color: var(--pixel-cyan); text-decoration: none;">Terms & Conditions</a> and <a href="{{ url_for('privacy_policy') }}" target="_blank" style="color: var(--pixel-cyan); text-decoration: none;">Privacy Policy</a></label>
+                </div>
+                
+                <button type="submit" class="pixel-btn pixel-btn-primary" style="width: 100%; padding: 1rem; font-size: 1.2rem; margin-bottom: 1rem;">Login</button>
+            </form>
+            
+            <div style="text-align: center; font-family: 'VT323', monospace; font-size: 1.1rem; color: rgba(248, 249, 250, 0.7); margin-top: 1.5rem;">
+                <p>Don't have an account? <a href="{{ url_for('register') }}" style="color: var(--pixel-cyan); text-decoration: none;">Register here</a></p>
+                <p><a href="{{ url_for('forgot_password') }}" style="color: var(--pixel-purple); text-decoration: none;">Forgot Password?</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navbar -->
+    <nav class="mobile-navbar">
+        <a href="{{ url_for('index') }}">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('gallery') }}">
+            <div class="nav-icon"><i class="fas fa-th"></i></div>
+            <span>Explore</span>
+        </a>
+        <a href="{{ url_for('login') }}" class="active">
+            <div class="nav-icon"><i class="fas fa-sign-in-alt"></i></div>
+            <span>Login</span>
+        </a>
+        <a href="{{ url_for('register') }}">
+            <div class="nav-icon"><i class="fas fa-user-plus"></i></div>
+            <span>Register</span>
+        </a>
+    </nav>
+</body>
+</html>
