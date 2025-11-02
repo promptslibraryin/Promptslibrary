@@ -51,7 +51,7 @@
                     </div>
                 </div>
                 
-                <a href="{{ url_for('profile') }}" {% if request.endpoint == 'profile' %}class="active"{% endif %}>Profile</a>
+                <a href="{{ url_for('public_profile', username=current_user.username) }}" {% if request.endpoint == 'public_profile' %}class="active"{% endif %}>Profile</a>
                 <a href="{{ url_for('logout') }}">Logout</a>
             {% else %}
                 <a href="{{ url_for('login') }}">Login</a>
@@ -95,7 +95,7 @@
                 <div class="nav-icon"><i class="fas fa-coins"></i></div>
                 <span>Buy Coins</span>
             </a>
-            <a href="{{ url_for('profile') }}" {% if request.endpoint == 'profile' %}class="active"{% endif %}>
+                        <a href="{{ url_for('public_profile', username=current_user.username) }}" {% if request.endpoint == 'public_profile' %}class="active"{% endif %}>
                 <div class="nav-icon"><i class="fas fa-user"></i></div>
                 <span>Profile</span>
             </a>

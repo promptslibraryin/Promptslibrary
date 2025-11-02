@@ -73,8 +73,11 @@
                                     </p>
                                 </div>
                                 {% if current_user.is_authenticated and current_user.id == user.id %}
-                                <a href="{{ url_for('profile') }}" class="btn btn-outline-primary">
-                                    <i data-feather="edit" class="feather-sm"></i> Edit Profile
+                                <a href="{{ url_for('profile') }}" class="btn btn-outline-primary btn-sm position-absolute top-0 end-0 m-3" title="Edit Profile"
+                                   style="transition: transform 0.2s, box-shadow 0.2s;"
+                                   onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 0 10px rgba(13, 110, 253, 0.5)';"
+                                   onmouseout="this.style.transform='scale(1)';this.style.boxShadow='none';">
+                                    <i data-feather="edit" class="feather-sm"></i>
                                 </a>
                                 {% endif %}
                             </div>
