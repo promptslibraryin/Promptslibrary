@@ -30,7 +30,7 @@
         <nav class="pixel-nav">
             <a href="{{ url_for('gallery') }}">Gallery</a>
             {% if current_user.is_authenticated %}
-                <a href="{{ url_for('profile') }}">Profile</a>
+                <a href="{{ url_for('public_profile', username=current_user.username) }}">Profile</a>
                 <a href="{{ url_for('logout') }}">Logout</a>
             {% else %}
                 <a href="{{ url_for('login') }}">Login</a>
@@ -61,7 +61,7 @@
             
             <div class="hero-buttons">
                 <a href="{{ url_for('gallery') }}" class="pixel-btn pixel-btn-primary">Explore Prompts</a>
-                <a href="{{ url_for('register') if not current_user.is_authenticated else url_for('profile') }}" class="pixel-btn pixel-btn-secondary">Join Creator Circle</a>
+                <a href="{{ url_for('register') if not current_user.is_authenticated else url_for('public_profile', username=current_user.username) }}" class="pixel-btn pixel-btn-secondary">Join Creator Circle</a>
             </div>
             
             <div style="margin-top: 3rem; font-family: 'VT323', monospace; font-size: 1.5rem;">
@@ -141,7 +141,7 @@
         <h2 class="section-title">Join Creator Circle</h2>
         <div class="about-content">
             <p style="margin-bottom: 2rem;">Connect with your favorite creators. Join their Circle to access exclusive premium prompts.</p>
-            <a href="{{ url_for('register') if not current_user.is_authenticated else url_for('profile') }}" class="pixel-btn pixel-btn-primary">Join Circle</a>
+            <a href="{{ url_for('register') if not current_user.is_authenticated else url_for('public_profile', username=current_user.username) }}" class="pixel-btn pixel-btn-primary">Join Circle</a>
         </div>
     </section>
 

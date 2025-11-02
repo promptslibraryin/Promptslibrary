@@ -66,7 +66,7 @@
                 {% if current_user.is_admin %}
                     <a href="{{ url_for('add_prompt') }}">Upload</a>
                 {% endif %}
-                <a href="{{ url_for('profile') }}">Profile</a>
+                <a href="{{ url_for('public_profile', username=current_user.username) }}">Profile</a>
                 <a href="{{ url_for('logout') }}">Logout</a>
             {% else %}
                 <a href="{{ url_for('login') }}">Login</a>
@@ -191,7 +191,7 @@
                 <div class="nav-icon"><i class="fas fa-bookmark"></i></div>
                 <span>Saved</span>
             </a>
-            <a href="{{ url_for('profile') }}">
+            <a href="{{ url_for('public_profile', username=current_user.username) }}">
                 <div class="nav-icon"><i class="fas fa-user"></i></div>
                 <span>Profile</span>
             </a>
@@ -269,9 +269,53 @@
                     categorySpan.textContent = data.category;
                     const creatorSpan = document.createElement('span');
                     creatorSpan.style.color = 'var(--pixel-cyan)';
-                    creatorSpan.textContent = 'by ' + data.creator;
+                    creatorSpan.textContent = 'by ';
+
+                    const creatorLink = document.createElement('a');
+                    // Link to the public profile route: /user/<username>
+                    creatorLink.href = `/user/${encodeURIComponent(data.creator)}`;
+                    creatorLink.style.color = 'var(--pixel-cyan)';
+                    creatorLink.className = 'creator-link';
+                    // Prevent the outer card/modal click handlers when clicking the link
+                    creatorLink.addEventListener('click', function(e) { e.stopPropagation(); });
+
+                    // Creator avatar (use provided image or fallback)
+                    const creatorImg = document.createElement('img');
+                    creatorImg.src = data.creator_profile_pic || '/static/images/default-profile.svg';
+                    creatorImg.alt = data.creator + "'s profile";
+                    creatorImg.style.width = '28px';
+                    creatorImg.style.height = '28px';
+                    creatorImg.style.borderRadius = '50%';
+                    creatorImg.style.objectFit = 'cover';
+                    creatorImg.style.margin = '0 0.5rem 0 0';
+                    creatorImg.style.verticalAlign = 'middle';
+                    creatorImg.style.border = '2px solid rgba(255,255,255,0.08)';
+                    creatorImg.addEventListener('click', function(e) { e.stopPropagation(); });
+
+                    // Build a neat "Created by" box for the modal
+                    creatorLink.appendChild(creatorImg);
+                    const nameNode = document.createElement('span');
+                    nameNode.textContent = data.creator;
+                    nameNode.className = 'creator-name';
+                    nameNode.style.verticalAlign = 'middle';
+                    creatorLink.appendChild(nameNode);
+
+                    const creatorBox = document.createElement('div');
+                    creatorBox.className = 'creator-box';
+
+                    const createdByLabel = document.createElement('span');
+                    createdByLabel.textContent = 'by';
+                    createdByLabel.style.fontFamily = "'VT323', monospace";
+                    createdByLabel.style.color = 'rgba(248,249,250,0.75)';
+                    createdByLabel.style.fontSize = '0.9rem';
+
+                    // Put label and link (avatar + name) inside the box
+                    creatorBox.appendChild(createdByLabel);
+                    creatorBox.appendChild(creatorLink);
+
+                    // Append category then creator box
                     metaDiv.appendChild(categorySpan);
-                    metaDiv.appendChild(creatorSpan);
+                    metaDiv.appendChild(creatorBox);
                     contentDiv.appendChild(metaDiv);
                     
                     // Create description section

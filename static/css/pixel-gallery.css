@@ -513,6 +513,31 @@ body.pixel-theme::before {
     color: var(--pixel-cyan);
 }
 
+/* Creator box inside prompt modal */
+.creator-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(26, 26, 31, 0.9);
+    border: 2px solid var(--pixel-purple);
+    padding: 0.6rem 0.8rem;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(157, 78, 221, 0.12);
+}
+.creator-box img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.06);
+}
+.creator-box .creator-name {
+    font-family: 'VT323', monospace;
+    color: var(--pixel-cyan);
+    font-size: 1rem;
+}
+.creator-box a.creator-link { text-decoration: none; }
+
 /* Sponsor Card */
 .pixel-sponsor-card {
     background: rgba(26, 26, 31, 0.9);
