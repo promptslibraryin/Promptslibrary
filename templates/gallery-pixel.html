@@ -215,6 +215,16 @@
     </div>
 
     <script>
+        // Validate image URL (only allow http/https)
+        function isValidImageUrl(url) {
+            try {
+                const urlObj = new URL(url, window.location.origin);
+                return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+            } catch {
+                return false;
+            }
+        }
+
         // Open prompt modal
         function openPromptModal(promptId, slug) {
             const modal = document.getElementById('promptModal');
@@ -226,35 +236,81 @@
                 .then(data => {
                     modalTitle.textContent = data.title;
                     
-                    let actionsHTML = '';
-                    if (data.can_edit) {
-                        actionsHTML = `<button onclick="editPrompt(${data.id})" class="pixel-btn" style="margin-top: 1rem;">Edit</button>`;
-                    }
+                    // Safely create modal content
+                    const contentDiv = document.createElement('div');
                     
-                    modalContent.innerHTML = `
-                        <div style="margin-bottom: 1.5rem;">
-                            <img src="${data.image_url}" alt="${data.title}" style="width: 100%; border-radius: 8px; border: 2px solid var(--pixel-purple);">
-                        </div>
-                        <div style="margin-bottom: 1rem;">
-                            <span style="padding: 0.4rem 0.8rem; background: rgba(157, 78, 221, 0.3); border: 1px solid var(--pixel-cyan); border-radius: 6px; display: inline-block; margin-right: 0.5rem;">${data.category}</span>
-                            <span style="color: var(--pixel-cyan);">by ${data.creator}</span>
-                        </div>
-                        <div style="margin-bottom: 1rem;">
-                            <h4 style="color: var(--pixel-gold); font-family: 'Orbitron', sans-serif; margin-bottom: 0.5rem;">Description</h4>
-                            <p>${data.description}</p>
-                        </div>
-                        ${data.can_view_details ? `
-                            <div style="margin-bottom: 1rem;">
-                                <h4 style="color: var(--pixel-gold); font-family: 'Orbitron', sans-serif; margin-bottom: 0.5rem;">Prompt</h4>
-                                <div style="background: rgba(11, 11, 16, 0.8); padding: 1rem; border-radius: 8px; border: 2px solid var(--pixel-purple); position: relative;">
-                                    <p style="margin-bottom: 0;">${data.prompt_text}</p>
-                                    <button onclick="copyPrompt('${data.prompt_text.replace(/'/g, "\\'")}', event)" class="pixel-btn" style="margin-top: 1rem; font-size: 0.9rem;">Copy Prompt</button>
-                                </div>
+                    // Create image section
+                    const imageDiv = document.createElement('div');
+                    imageDiv.style.marginBottom = '1.5rem';
+                    const img = document.createElement('img');
+                    // Validate and set image URL
+                    if (isValidImageUrl(data.image_url)) {
+                        img.src = data.image_url;
+                    } else {
+                        img.src = '/static/images/placeholder.png';  // Safe fallback
+                    }
+                    img.alt = data.title;
+                    img.style.width = '100%';
+                    img.style.borderRadius = '8px';
+                    img.style.border = '2px solid var(--pixel-purple)';
+                    imageDiv.appendChild(img);
+                    contentDiv.appendChild(imageDiv);
+                    
+                    // Create category and creator section
+                    const metaDiv = document.createElement('div');
+                    metaDiv.style.marginBottom = '1rem';
+                    const categorySpan = document.createElement('span');
+                    categorySpan.style.padding = '0.4rem 0.8rem';
+                    categorySpan.style.background = 'rgba(157, 78, 221, 0.3)';
+                    categorySpan.style.border = '1px solid var(--pixel-cyan)';
+                    categorySpan.style.borderRadius = '6px';
+                    categorySpan.style.display = 'inline-block';
+                    categorySpan.style.marginRight = '0.5rem';
+                    categorySpan.textContent = data.category;
+                    const creatorSpan = document.createElement('span');
+                    creatorSpan.style.color = 'var(--pixel-cyan)';
+                    creatorSpan.textContent = 'by ' + data.creator;
+                    metaDiv.appendChild(categorySpan);
+                    metaDiv.appendChild(creatorSpan);
+                    contentDiv.appendChild(metaDiv);
+                    
+                    // Create description section
+                    const descDiv = document.createElement('div');
+                    descDiv.style.marginBottom = '1rem';
+                    const descHeader = document.createElement('h4');
+                    descHeader.style.color = 'var(--pixel-gold)';
+                    descHeader.style.fontFamily = "'Orbitron', sans-serif";
+                    descHeader.style.marginBottom = '0.5rem';
+                    descHeader.textContent = 'Description';
+                    const descText = document.createElement('p');
+                    descText.textContent = data.description;
+                    descDiv.appendChild(descHeader);
+                    descDiv.appendChild(descText);
+                    contentDiv.appendChild(descDiv);
+                    
+                    if (data.can_view_details) {
+                        const promptSection = document.createElement('div');
+                        promptSection.style.marginBottom = '1rem';
+                        promptSection.innerHTML = `
+                            <h4 style="color: var(--pixel-gold); font-family: 'Orbitron', sans-serif; margin-bottom: 0.5rem;">Prompt</h4>
+                            <div style="background: rgba(11, 11, 16, 0.8); padding: 1rem; border-radius: 8px; border: 2px solid var(--pixel-purple);">
+                                <p id="modalPromptText" style="margin-bottom: 0;"></p>
+                                <button id="copyPromptBtn" class="pixel-btn" style="margin-top: 1rem; font-size: 0.9rem;">Copy Prompt</button>
                             </div>
-                            <button onclick="toggleSave(${data.id}, event)" class="pixel-btn ${data.is_saved ? 'pixel-btn-primary' : ''}" style="margin-top: 1rem;">
-                                ${data.is_saved ? 'Unsave' : 'Save Prompt'}
-                            </button>
-                        ` : `
+                        `;
+                        promptSection.querySelector('#modalPromptText').textContent = data.prompt_text;
+                        contentDiv.appendChild(promptSection);
+                        
+                        const saveBtn = document.createElement('button');
+                        saveBtn.id = 'toggleSaveBtn';
+                        saveBtn.className = 'pixel-btn' + (data.is_saved ? ' pixel-btn-primary' : '');
+                        saveBtn.style.marginTop = '1rem';
+                        saveBtn.textContent = data.is_saved ? 'Unsave' : 'Save Prompt';
+                        saveBtn.dataset.promptId = data.id;
+                        saveBtn.dataset.isSaved = data.is_saved;
+                        contentDiv.appendChild(saveBtn);
+                    } else {
+                        contentDiv.innerHTML += `
                             <div style="background: rgba(157, 78, 221, 0.1); border: 2px solid var(--pixel-purple); border-radius: 8px; padding: 2rem; text-align: center; margin-top: 1rem;">
                                 <p style="font-size: 1.2rem; margin-bottom: 1rem;">Unlock full prompt details</p>
                                 ${data.can_start_trial ? 
@@ -262,9 +318,69 @@
                                     '<a href="/subscription" class="pixel-btn pixel-btn-primary">Upgrade Now</a>'
                                 }
                             </div>
-                        `}
-                        ${actionsHTML}
-                    `;
+                        `;
+                    }
+                    
+                    // Add Edit button for authorized users
+                    if (data.can_edit) {
+                        const editBtn = document.createElement('button');
+                        editBtn.className = 'pixel-btn pixel-btn-primary';
+                        editBtn.style.marginTop = '1rem';
+                        editBtn.style.marginLeft = '0.5rem';
+                        editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
+                        editBtn.addEventListener('click', function() {
+                            window.location.href = `/prompts/${data.slug}/edit`;
+                        });
+                        contentDiv.appendChild(editBtn);
+                    }
+                    
+                    modalContent.innerHTML = '';
+                    modalContent.appendChild(contentDiv);
+                    
+                    // Add event listeners after DOM is ready
+                    const copyBtn = document.getElementById('copyPromptBtn');
+                    if (copyBtn) {
+                        copyBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const text = document.getElementById('modalPromptText').textContent;
+                            navigator.clipboard.writeText(text).then(() => {
+                                copyBtn.textContent = 'Copied!';
+                                setTimeout(() => {
+                                    copyBtn.textContent = 'Copy Prompt';
+                                }, 2000);
+                            });
+                        });
+                    }
+                    
+                    const saveBtn = document.getElementById('toggleSaveBtn');
+                    if (saveBtn) {
+                        saveBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const promptId = saveBtn.dataset.promptId;
+                            const isSaved = saveBtn.dataset.isSaved === 'true';
+                            const endpoint = isSaved ? `/unsave_prompt/${promptId}` : `/save_prompt/${promptId}`;
+                            
+                            fetch(endpoint, {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/json'}
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    if (isSaved) {
+                                        saveBtn.textContent = 'Save Prompt';
+                                        saveBtn.classList.remove('pixel-btn-primary');
+                                        saveBtn.dataset.isSaved = 'false';
+                                    } else {
+                                        saveBtn.textContent = 'Unsave';
+                                        saveBtn.classList.add('pixel-btn-primary');
+                                        saveBtn.dataset.isSaved = 'true';
+                                    }
+                                }
+                            })
+                            .catch(error => console.error('Error:', error));
+                        });
+                    }
                     
                     modal.style.display = 'block';
                     document.body.style.overflow = 'hidden';
@@ -278,39 +394,6 @@
                 document.getElementById('promptModal').style.display = 'none';
                 document.body.style.overflow = 'auto';
             }
-        }
-
-        // Copy prompt text
-        function copyPrompt(text, event) {
-            event.stopPropagation();
-            navigator.clipboard.writeText(text).then(() => {
-                event.target.textContent = 'Copied!';
-                setTimeout(() => {
-                    event.target.textContent = 'Copy Prompt';
-                }, 2000);
-            });
-        }
-
-        // Toggle save
-        function toggleSave(promptId, event) {
-            event.stopPropagation();
-            fetch(`/save_prompt/${promptId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.saved) {
-                    event.target.textContent = 'Unsave';
-                    event.target.classList.add('pixel-btn-primary');
-                } else {
-                    event.target.textContent = 'Save Prompt';
-                    event.target.classList.remove('pixel-btn-primary');
-                }
-            })
-            .catch(error => console.error('Error:', error));
         }
 
         // ESC key to close modal

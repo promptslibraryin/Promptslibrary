@@ -1,86 +1,128 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saved Prompts - Prompts Library</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
-    <link href="{{ url_for('static', filename='css/pixel-gallery.css') }}" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
-</head>
-<body class="pixel-theme">
-    <header class="pixel-header">
-        <a href="{{ url_for('index') }}" class="pixel-logo">
-            <img src="{{ url_for('static', filename='images/eagle-logo.jpg') }}" alt="Prompts Library Logo">
-            <span>Prompts-Library</span>
-        </a>
-        <nav class="pixel-nav">
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('gallery') }}">Explore</a>
-            <a href="{{ url_for('profile') }}">Profile</a>
-        </nav>
-    </header>
+{% extends "base-pixel.html" %}
 
-    <div class="pixel-container">
-        <div style="padding: 2rem 0; text-align: center;">
-            <h1 style="font-family: 'Press Start 2P', cursive; font-size: 1.8rem; background: linear-gradient(135deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; filter: drop-shadow(0 0 15px #FFD700);">Saved Prompts</h1>
-            <p style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.7);">Your bookmarked prompts collection</p>
-        </div>
+{% block title %}Saved Prompts - Prompts Library{% endblock %}
 
-        {% if prompts %}
-            <div class="prompt-grid">
-                {% for prompt in prompts %}
-                    <div class="prompt-card" data-prompt-id="{{ prompt.id }}">
-                        <div class="prompt-image">
-                            <img src="{{ prompt.image_url }}" alt="{{ prompt.title }}" loading="lazy">
-                            <div class="prompt-overlay">
-                                <div class="prompt-category">{{ prompt.category.name }}</div>
-                                <button class="unsave-btn" onclick="unsavePrompt('{{ prompt.id }}')" title="Remove from saved">
-                                    <i class="fas fa-bookmark"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="prompt-info">
-                            <h3 class="prompt-title">{{ prompt.title }}</h3>
-                            <p class="prompt-creator">by {{ prompt.creator.username }}</p>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div style="text-align: center; padding: 4rem 2rem;">
-                <i class="fas fa-bookmark" style="font-size: 4rem; color: var(--pixel-purple); opacity: 0.5; margin-bottom: 2rem;"></i>
-                <h2 style="font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: var(--pixel-white); margin-bottom: 1rem;">No saved prompts yet</h2>
-                <p style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.7); margin-bottom: 2rem;">You haven't saved any prompts yet. Browse the gallery and save prompts you find interesting!</p>
-                <a href="{{ url_for('gallery') }}" class="pixel-btn pixel-btn-primary" style="display: inline-block; padding: 1rem 2rem; font-size: 1.1rem; text-decoration: none;">
-                    <i class="fas fa-search" style="margin-right: 0.5rem;"></i>Browse Gallery
-                </a>
-            </div>
-        {% endif %}
+{% block content %}
+<div class="pixel-container">
+    <div style="padding: 2rem 0; text-align: center;">
+        <h1 style="font-family: 'Press Start 2P', cursive; font-size: 1.8rem; background: linear-gradient(135deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; filter: drop-shadow(0 0 15px #FFD700);">Saved Prompts</h1>
+        <p style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.7);">Your bookmarked prompts collection</p>
     </div>
 
-    <nav class="mobile-navbar">
-        <a href="{{ url_for('index') }}">
-            <div class="nav-icon"><i class="fas fa-home"></i></div>
-            <span>Home</span>
-        </a>
-        <a href="{{ url_for('gallery') }}">
-            <div class="nav-icon"><i class="fas fa-th"></i></div>
-            <span>Explore</span>
-        </a>
-        <a href="{{ url_for('saved_prompts') }}" class="active">
-            <div class="nav-icon"><i class="fas fa-bookmark"></i></div>
-            <span>Saved</span>
-        </a>
-        <a href="{{ url_for('profile') }}">
-            <div class="nav-icon"><i class="fas fa-user"></i></div>
-            <span>Profile</span>
-        </a>
-    </nav>
+    {% if prompts %}
+        <div class="prompt-grid">
+            {% for prompt in prompts %}
+                <div class="pixel-prompt-card" data-prompt-id="{{ prompt.id }}" onclick="openPromptModal({{ prompt.id }}, '{{ prompt.slug }}')">
+                    <div class="card-image-container">
+                        <img src="{{ prompt.image_url }}" alt="{{ prompt.title }}" class="card-image" loading="lazy">
+                        <div class="pixel-category-badge">{{ prompt.category.name }}</div>
+                        <div class="card-overlay">
+                            <h3 class="card-title">{{ prompt.title }}</h3>
+                            <p class="card-creator">by {{ prompt.creator.username }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 4rem 2rem;">
+            <i class="fas fa-bookmark" style="font-size: 4rem; color: var(--pixel-purple); opacity: 0.5; margin-bottom: 2rem;"></i>
+            <h2 style="font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: var(--pixel-white); margin-bottom: 1rem;">No saved prompts yet</h2>
+            <p style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.7); margin-bottom: 2rem;">You haven't saved any prompts yet. Browse the gallery and save prompts you find interesting!</p>
+            <a href="{{ url_for('gallery') }}" class="pixel-btn pixel-btn-primary" style="display: inline-block; padding: 1rem 2rem; font-size: 1.1rem; text-decoration: none;">
+                <i class="fas fa-search" style="margin-right: 0.5rem;"></i>Browse Gallery
+            </a>
+        </div>
+    {% endif %}
+</div>
 
-    <script>
-    function unsavePrompt(promptId) {
+<!-- Prompt Detail Modal -->
+<div id="promptModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 11, 16, 0.95); z-index: 2000; overflow-y: auto; padding: 2rem 1rem;" onclick="closeModal(event)">
+    <div style="max-width: 900px; margin: 0 auto; background: rgba(26, 26, 31, 0.95); border: 2px solid var(--pixel-purple); border-radius: 12px; overflow: hidden;" onclick="event.stopPropagation()">
+        <div style="padding: 1.5rem; border-bottom: 2px solid var(--pixel-purple); display: flex; justify-content: space-between; align-items: center;">
+            <h2 id="modalTitle" style="font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: var(--pixel-cyan); margin: 0;"></h2>
+            <button onclick="closeModal()" style="background: none; border: 2px solid var(--pixel-purple); color: var(--pixel-white); font-size: 1.5rem; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; font-family: 'Press Start 2P', cursive;">×</button>
+        </div>
+        <div id="modalContent" style="padding: 1.5rem; font-family: 'VT323', monospace; font-size: 1.1rem; color: var(--pixel-white);"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Open prompt modal
+    function openPromptModal(promptId, slug) {
+        const modal = document.getElementById('promptModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalContent = document.getElementById('modalContent');
+        
+        fetch(`/prompts/${slug}`)
+            .then(response => response.json())
+            .then(data => {
+                modalTitle.textContent = data.title;
+                
+                modalContent.innerHTML = `
+                    <div style="margin-bottom: 1.5rem;">
+                        <img src="${data.image_url}" alt="${data.title}" style="width: 100%; border-radius: 8px; border: 2px solid var(--pixel-purple);">
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <span style="padding: 0.4rem 0.8rem; background: rgba(157, 78, 221, 0.3); border: 1px solid var(--pixel-cyan); border-radius: 6px; display: inline-block; margin-right: 0.5rem;">${data.category}</span>
+                        <span style="color: var(--pixel-cyan);">by ${data.creator}</span>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <h4 style="color: var(--pixel-gold); font-family: 'Orbitron', sans-serif; margin-bottom: 0.5rem;">Description</h4>
+                        <p>${data.description}</p>
+                    </div>
+                    ${data.can_view_details ? `
+                        <div style="margin-bottom: 1rem;">
+                            <h4 style="color: var(--pixel-gold); font-family: 'Orbitron', sans-serif; margin-bottom: 0.5rem;">Prompt</h4>
+                            <div style="background: rgba(11, 11, 16, 0.8); padding: 1rem; border-radius: 8px; border: 2px solid var(--pixel-purple); position: relative;">
+                                <p style="margin-bottom: 0;">${data.prompt_text}</p>
+                                <button onclick="copyPrompt('${data.prompt_text.replace(/'/g, "\\'")}', event)" class="pixel-btn" style="margin-top: 1rem; font-size: 0.9rem;">Copy Prompt</button>
+                            </div>
+                        </div>
+                        <button onclick="unsavePrompt(${data.id}, event)" class="pixel-btn pixel-btn-primary" style="margin-top: 1rem;">
+                            <i class="fas fa-bookmark"></i> Remove from Saved
+                        </button>
+                    ` : `
+                        <div style="background: rgba(157, 78, 221, 0.1); border: 2px solid var(--pixel-purple); border-radius: 8px; padding: 2rem; text-align: center; margin-top: 1rem;">
+                            <p style="font-size: 1.2rem; margin-bottom: 1rem;">Unlock full prompt details</p>
+                            ${data.can_start_trial ? 
+                                '<a href="/subscription" class="pixel-btn pixel-btn-primary">Start Free Trial</a>' : 
+                                '<a href="/subscription" class="pixel-btn pixel-btn-primary">Upgrade Now</a>'
+                            }
+                        </div>
+                    `}
+                `;
+                
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Close modal
+    function closeModal(event) {
+        if (!event || event.target.id === 'promptModal') {
+            document.getElementById('promptModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    // Copy prompt text
+    function copyPrompt(text, event) {
+        event.stopPropagation();
+        navigator.clipboard.writeText(text).then(() => {
+            event.target.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            setTimeout(() => {
+                event.target.innerHTML = 'Copy Prompt';
+            }, 2000);
+        });
+    }
+
+    // Unsave prompt
+    function unsavePrompt(promptId, event) {
+        event.stopPropagation();
         if (confirm('Remove this prompt from your saved collection?')) {
             fetch(`/unsave_prompt/${promptId}`, {
                 method: 'POST',
@@ -91,17 +133,19 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const promptCard = document.querySelector(`[data-prompt-id="${promptId}"]`);
-                    if (promptCard) {
-                        promptCard.style.animation = 'fadeOut 0.3s ease';
-                        setTimeout(() => promptCard.remove(), 300);
-                    }
+                    closeModal();
                     location.reload();
                 }
             })
             .catch(error => console.error('Error:', error));
         }
     }
-    </script>
-</body>
-</html>
+
+    // ESC key to close modal
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeModal();
+        }
+    });
+</script>
+{% endblock %}

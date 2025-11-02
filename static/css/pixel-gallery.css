@@ -129,7 +129,109 @@ body.pixel-theme::before {
 @media (min-width: 768px) {
     .pixel-nav {
         display: flex;
+        align-items: center;
     }
+}
+
+/* Dropdown Menu Styles */
+.nav-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.nav-dropdown-btn {
+    background: rgba(157, 78, 221, 0.2);
+    border: 2px solid var(--pixel-purple);
+    color: var(--pixel-white);
+    padding: 0.5rem 0.8rem;
+    font-size: 1.2rem;
+    cursor: pointer;
+    border-radius: 8px;
+    font-family: 'VT323', monospace;
+    transition: all 0.3s ease;
+}
+
+.nav-dropdown-btn:hover {
+    background: rgba(157, 78, 221, 0.4);
+    border-color: var(--pixel-cyan);
+    box-shadow: 0 0 10px var(--pixel-purple);
+}
+
+.nav-dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 0.5rem;
+    background: rgba(26, 26, 31, 0.98);
+    border: 2px solid var(--pixel-purple);
+    border-radius: 8px;
+    min-width: 220px;
+    box-shadow: 0 8px 30px rgba(157, 78, 221, 0.4);
+    z-index: 2000;
+    backdrop-filter: blur(10px);
+}
+
+.nav-dropdown-content.show {
+    display: block;
+    animation: dropdownSlide 0.3s ease;
+}
+
+@keyframes dropdownSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.nav-dropdown-content a {
+    color: var(--pixel-white);
+    padding: 0.8rem 1.2rem;
+    text-decoration: none;
+    display: block;
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    border-bottom: 1px solid rgba(157, 78, 221, 0.2);
+    transition: all 0.3s ease;
+}
+
+.nav-dropdown-content a:last-child {
+    border-bottom: none;
+}
+
+.nav-dropdown-content a:hover {
+    background: rgba(157, 78, 221, 0.3);
+    color: var(--pixel-cyan);
+    padding-left: 1.5rem;
+}
+
+.nav-dropdown-content a i {
+    margin-right: 0.5rem;
+    color: var(--pixel-purple);
+}
+
+.nav-dropdown-content a:hover i {
+    color: var(--pixel-cyan);
+}
+
+.dropdown-divider {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--pixel-purple), transparent);
+    margin: 0.5rem 0;
+}
+
+.dropdown-header {
+    color: var(--pixel-gold);
+    padding: 0.5rem 1.2rem;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    border-bottom: 2px solid var(--pixel-gold);
+    margin-bottom: 0.3rem;
 }
 
 /* Mobile Bottom Navbar */
