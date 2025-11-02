@@ -103,6 +103,12 @@
                     <ul class="nav nav-pills flex-column mb-auto">
                         <li class="nav-item">
                             <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+                                <i data-feather="home"></i>
+                                Home
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('gallery') }}" class="nav-link {% if request.endpoint == 'gallery' %}active{% endif %}">
                                 <i data-feather="image"></i>
                                 Gallery
                             </a>
