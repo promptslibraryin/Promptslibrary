@@ -471,6 +471,55 @@ def my_prompts():
     return render_template('my_prompts-pixel.html', prompts=prompts[::-1], categories=categories, selected_category=category_id)
 
 
+@app.route('/prompts/<slug>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_prompt_by_slug(slug):
+    prompt = Prompt.query.filter_by(slug=slug).first_or_404()
+    
+    # Check if user owns this prompt
+    if prompt.user_id != current_user.id and not current_user.is_admin:
+        if request.method == 'POST':
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+        flash('You are not authorized to edit this prompt', 'error')
+        return redirect(url_for('gallery'))
+    
+    if request.method == 'POST':
+        # Handle image update
+        image_url = prompt.image_url  # Keep existing by default
+        
+        # Check if new image file was uploaded
+        file = request.files.get('image_file')
+        if file and file.filename and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            name, ext = os.path.splitext(filename)
+            unique_filename = f"{uuid.uuid4()}{ext}"
+            upload_dir = os.path.join(app.root_path, 'static', 'uploads', 'prompts')
+            os.makedirs(upload_dir, exist_ok=True)
+            file_path = os.path.join(upload_dir, unique_filename)
+            file.save(file_path)
+            image_url = f'/static/uploads/prompts/{unique_filename}'
+        # Check if new image URL was provided
+        elif request.form.get('new_image_url'):
+            image_url = request.form.get('new_image_url')
+        # Otherwise use the existing image_url from form
+        elif request.form.get('image_url'):
+            image_url = request.form.get('image_url')
+        
+        prompt.title = request.form['title']
+        prompt.description = request.form['description']
+        prompt.prompt_text = request.form['prompt_text']
+        prompt.image_url = image_url
+        prompt.category_id = request.form['category_id']
+        
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Prompt updated successfully'})
+    
+    # GET request - show edit form
+    categories = Category.query.all()
+    return render_template('edit_prompt-pixel.html', prompt=prompt, categories=categories)
+
+
 @app.route('/edit_prompt/<int:prompt_id>', methods=['POST'])
 @login_required
 def edit_prompt(prompt_id):
