@@ -1,169 +1,241 @@
-{% extends "base.html" %}
-
-{% block title %}Explore AI Prompts - Prompts Library | ChatGPT, Midjourney & Gemini Prompts{% endblock %}
-
-{% block meta_description %}
-<meta name="description" content="Browse {{ prompts.total }} AI prompts for ChatGPT, Midjourney, Gemini and more. Free and premium prompts for content creation, design, coding, and business. Updated daily.">
-{% endblock %}
-
-{% block content %}
-<!-- Structured Data for ItemList of Prompts -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "ItemList",
-  "name": "AI Prompts Collection",
-  "description": "Curated collection of AI prompts for ChatGPT, Midjourney, Gemini and other AI tools",
-  "numberOfItems": {{ prompts.total }},
-  "itemListElement": [
-    {% for prompt in prompts.items[:10] %}
-    {
-      "@type": "ListItem",
-      "position": {{ loop.index }},
-      "item": {
-        "@type": "CreativeWork",
-        "name": "{{ prompt.title|replace('"', '\\"') }}",
-        "description": "{{ prompt.description[:200]|replace('"', '\\"') }}",
-        "image": "{{ prompt.image_url }}",
-        "author": {
-          "@type": "Person",
-          "name": "{{ prompt.creator.username }}"
-        },
-        "datePublished": "{{ prompt.created_at.isoformat() }}",
-        "genre": "{{ prompt.category.name }}",
-        "keywords": "AI prompts, {{ prompt.category.name }}, ChatGPT, Midjourney, Gemini"
-      }
-    }{% if not loop.last %},{% endif %}
-    {% endfor %}
-  ]
-}
-</script>
-
-<!-- Breadcrumb Structured Data -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": "{{ url_for('index', _external=True) }}"
-    }{% if selected_category %},
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "{{ categories|selectattr('id', 'equalto', selected_category)|first|attr('name') }}",
-      "item": "{{ (url_for('category_page', slug=selected_category_slug, _external=True) if selected_category_slug else url_for('index', category=selected_category, _external=True)) }}"
-    }{% endif %}
-  ]
-}
-</script>
-
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <!-- <marquee behavior="scroll" direction="left" scrollamount="6" style="color: red; font-weight: bold; font-size: 18px;">
-    🚀 Do you want to advertise your business here? Contact us at <a href="mailto:hardikv682@gmail.com" style="color: yellow; text-decoration: none;">hardikv682@gmail.com</a>
-</marquee> -->
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pt-3 gap-3">
-                <h1 class="mb-0">Explore AI Prompts</h1>
-                
-                <!-- Category Filter -->
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle w-100 w-md-auto" type="button" data-bs-toggle="dropdown">
-                        {% if selected_category %}
-                            {{ categories|selectattr('id', 'equalto', selected_category)|first|attr('name') }}
-                        {% else %}
-                            All Categories
-                        {% endif %}
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ url_for('index') }}">All Categories</a></li>
-                        {% for category in categories %}
-                            <li><a class="dropdown-item" href="{{ url_for('category_page', slug=category.slug) if category.slug else url_for('index', category=category.id) }}">{{ category.name }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Masonry Gallery -->
-            <div class="masonry-container">
-                <!-- Sponsored Content -->
-                {% for sponsorship in sponsorships %}
-                    <div class="masonry-item" data-sponsorship-id="{{ sponsorship.id }}">
-                        <div class="card sponsor-card">
-                            <div class="card-img-container">
-                                <img src="{{ sponsorship.image_url }}" class="card-img-top" alt="{{ sponsorship.title }}" loading="lazy">
-                                <div class="sponsor-badge">
-                                    <span class="badge bg-warning text-dark">
-                                        <i data-feather="star"></i> Sponsored
-                                    </span>
-                                </div>
-                                <div class="card-overlay">
-                                    <div class="overlay-content">
-                                        <h6 class="card-title mb-1">{{ sponsorship.title }}</h6>
-                                        <!-- <p class="card-text small">{{ sponsorship.description[:50] }}{% if sponsorship.description|length > 50 %}...{% endif %}</p> -->
-                                        <small class="text-muted">by {{ sponsorship.client_name }}</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-                
-                <!-- Regular Prompts -->
-               <div id="prompt-list">
-                {% for prompt in prompts.items %}
-                    <div class="masonry-item" data-prompt-id="{{ prompt.id }}">
-                        <div class="card prompt-card">
-                            <div class="card-img-container">
-                                <img src="{{ prompt.image_url }}" class="card-img-top" alt="{{ prompt.title }}" loading="lazy">
-                                <div class="category-badge">
-                                    <span class="badge bg-primary">{{ prompt.category.name }}</span>
-                                </div>
-                                <div class="card-overlay">
-                                    <div class="overlay-content">
-                                        <h6 class="card-title mb-1">{{ prompt.title }}</h6>
-                                        <small class="text-muted">by {{ prompt.creator.username }}</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-<!-- ===== Divider + Pagination ===== -->
-<div class="pagination-wrapper">
-    <hr class="divider">
-    <div class="pagination-buttons">
-        {% if prompts.has_prev %}
-            <a href="{{ (url_for('category_page', slug=selected_category_slug, page=prompts.prev_num) if selected_category_slug else url_for('index', page=prompts.prev_num, category=selected_category)) }}"
-               class="btn btn-secondary me-2">Previous</a>
-        {% endif %}
-        {% if prompts.has_next %}
-            <a href="{{ (url_for('category_page', slug=selected_category_slug, page=prompts.next_num) if selected_category_slug else url_for('index', page=prompts.next_num, category=selected_category)) }}"
-               class="btn btn-primary">Show More</a>
-        {% endif %}
-    </div>
-</div>
-
-
-
-            {% if not prompts %}
-                <div class="text-center py-5">
-                    <div class="empty-state">
-                        <i data-feather="image" size="48" class="mb-3"></i>
-                        <h3>No prompts found</h3>
-                        <p class="text-muted">No prompts available in this category. Try selecting a different category or add some prompts.</p>
-                        {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('add_prompt') }}" class="btn btn-primary">Add First Prompt</a>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endif %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompts Library | India's #1 AI Social & Gamified Platform</title>
+    <meta name="description" content="India's first AI-powered social platform where creators share prompts, connect with circles, and earn coins through gamified creativity.">
+    <meta name="keywords" content="AI prompts, ChatGPT prompts, Midjourney prompts, Gemini prompts, AI platform India, earn with AI, creator platform">
+    
+    <meta property="og:title" content="Prompts Library - India's #1 AI Social & Gamified Platform">
+    <meta property="og:description" content="Explore, Create, and Earn with AI-powered content. Join India's premier AI creator community.">
+    <meta property="og:image" content="{{ url_for('static', filename='images/pm.png', _external=True) }}">
+    <meta property="og:url" content="{{ request.url }}">
+    
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon-16x16.png">
+    
+    <link href="{{ url_for('static', filename='css/pixel-landing.css') }}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+</head>
+<body class="pixel-landing">
+    
+    <!-- Header -->
+    <header class="pixel-header">
+        <div class="pixel-logo">
+            <img src="{{ url_for('static', filename='images/eagle-logo.jpg') }}" alt="Prompts Library Eagle Logo">
+            <span>Prompts-Library</span>
         </div>
-    </div>
-</div>
-{% endblock %}
+        <nav class="pixel-nav">
+            <a href="{{ url_for('gallery') }}">Gallery</a>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('profile') }}">Profile</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Sign Up</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="floating-particles">
+            <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+            <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
+            <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
+            <div class="particle" style="left: 40%; animation-delay: 6s;"></div>
+            <div class="particle" style="left: 50%; animation-delay: 1s;"></div>
+            <div class="particle" style="left: 60%; animation-delay: 3s;"></div>
+            <div class="particle" style="left: 70%; animation-delay: 5s;"></div>
+            <div class="particle" style="left: 80%; animation-delay: 7s;"></div>
+            <div class="particle" style="left: 90%; animation-delay: 2.5s;"></div>
+        </div>
+        
+        <div class="hero-content">
+            <div class="hero-badge">🚀 India's #1 AI Platform</div>
+            <h1 class="hero-title">Your Next Big Idea Starts With a Prompt</h1>
+            <p class="hero-subtitle">AI Social & Gamified Platform</p>
+            <p class="hero-description">Explore, Create, and Earn with AI-powered content.</p>
+            
+            <div class="hero-buttons">
+                <a href="{{ url_for('gallery') }}" class="pixel-btn pixel-btn-primary">Explore Prompts</a>
+                <a href="{{ url_for('register') if not current_user.is_authenticated else url_for('profile') }}" class="pixel-btn pixel-btn-secondary">Join Creator Circle</a>
+            </div>
+            
+            <div style="margin-top: 3rem; font-family: 'VT323', monospace; font-size: 1.5rem;">
+                <span class="glowing-text">🔍 Prompts-Library.in</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="section about-section">
+        <h2 class="section-title">What is Prompts-Library?</h2>
+        <div class="about-content">
+            <p>Prompts-Library is India's first AI-powered social platform where creators share prompts, connect with circles, and earn coins through gamified creativity.</p>
+        </div>
+    </section>
+
+    <!-- Explore AI Prompts Section -->
+    <section class="section">
+        <h2 class="section-title">Explore AI Prompts</h2>
+        <div class="categories-grid">
+            <div class="category-card">
+                <div class="category-icon">🎨</div>
+                <h3 class="category-title">AI Art</h3>
+                <p style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.7);">Create stunning visuals with AI</p>
+            </div>
+            <div class="category-card">
+                <div class="category-icon">💬</div>
+                <h3 class="category-title">Social Media</h3>
+                <p style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.7);">Engage your audience better</p>
+            </div>
+            <div class="category-card">
+                <div class="category-icon">💻</div>
+                <h3 class="category-title">Coding</h3>
+                <p style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.7);">AI-powered development</p>
+            </div>
+            <div class="category-card">
+                <div class="category-icon">📝</div>
+                <h3 class="category-title">Content Writing</h3>
+                <p style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.7);">Write like a pro</p>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="{{ url_for('gallery') }}" class="pixel-btn pixel-btn-primary">View All Prompts</a>
+        </div>
+    </section>
+
+    <!-- PM Coins System -->
+    <section class="section coins-section">
+        <h2 class="section-title">PM Coins System</h2>
+        <p style="text-align: center; font-family: 'VT323', monospace; font-size: 1.5rem; margin-bottom: 3rem; color: rgba(248, 249, 250, 0.9);">
+            Earn and spend PM Coins across the platform
+        </p>
+        <div class="coins-grid">
+            <div class="coin-card">
+                <div class="coin-icon">🪙</div>
+                <div class="coin-price">₹49</div>
+                <div class="coin-amount">200 Coins</div>
+                <a href="{{ url_for('payment') if current_user.is_authenticated else url_for('register') }}" class="pixel-btn pixel-btn-secondary" style="font-size: 0.7rem; padding: 0.8rem 1.5rem;">Buy Coins</a>
+            </div>
+            <div class="coin-card">
+                <div class="coin-icon">💰</div>
+                <div class="coin-price">₹199</div>
+                <div class="coin-amount">1000 Coins</div>
+                <a href="{{ url_for('payment') if current_user.is_authenticated else url_for('register') }}" class="pixel-btn pixel-btn-secondary" style="font-size: 0.7rem; padding: 0.8rem 1.5rem;">Buy Coins</a>
+            </div>
+            <div class="coin-card">
+                <div class="coin-icon">🦅</div>
+                <div class="coin-price">₹99</div>
+                <div class="coin-amount">Become Creator</div>
+                <a href="{{ url_for('payment') if current_user.is_authenticated else url_for('register') }}" class="pixel-btn pixel-btn-primary" style="font-size: 0.7rem; padding: 0.8rem 1.5rem;">Upgrade Now</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Join Creator Circle -->
+    <section class="section about-section">
+        <h2 class="section-title">Join Creator Circle</h2>
+        <div class="about-content">
+            <p style="margin-bottom: 2rem;">Connect with your favorite creators. Join their Circle to access exclusive premium prompts.</p>
+            <a href="{{ url_for('register') if not current_user.is_authenticated else url_for('profile') }}" class="pixel-btn pixel-btn-primary">Join Circle</a>
+        </div>
+    </section>
+
+    <!-- Leaderboard & Badges -->
+    <section class="section">
+        <h2 class="section-title">Leaderboard & Badges</h2>
+        <p style="text-align: center; font-family: 'VT323', monospace; font-size: 1.5rem; margin-bottom: 3rem; color: rgba(248, 249, 250, 0.9);">
+            Top creators every week earn badges and bonus coins through engagement
+        </p>
+        <div class="leaderboard-ranks">
+            <div class="rank-badge grand-master">
+                <div class="rank-icon">👑</div>
+                <div class="rank-name">Grand Master</div>
+            </div>
+            <div class="rank-badge elite">
+                <div class="rank-icon">💎</div>
+                <div class="rank-name">Elite</div>
+            </div>
+            <div class="rank-badge gold">
+                <div class="rank-icon">🏆</div>
+                <div class="rank-name">Gold</div>
+            </div>
+            <div class="rank-badge" style="border-color: #C0C0C0; box-shadow: 0 0 20px rgba(192, 192, 192, 0.3);">
+                <div class="rank-icon">🥈</div>
+                <div class="rank-name">Silver</div>
+            </div>
+            <div class="rank-badge" style="border-color: #CD7F32; box-shadow: 0 0 20px rgba(205, 127, 50, 0.3);">
+                <div class="rank-icon">🥉</div>
+                <div class="rank-name">Bronze</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How to Earn Section -->
+    <section class="section about-section">
+        <h2 class="section-title">How to Earn</h2>
+        <div class="earn-grid">
+            <div class="earn-card">
+                <div class="earn-number">1️⃣</div>
+                <h3 class="earn-title">Refer & Earn</h3>
+                <p class="earn-description">Invite friends and earn coins for every new member</p>
+            </div>
+            <div class="earn-card">
+                <div class="earn-number">2️⃣</div>
+                <h3 class="earn-title">Circle Members Earn</h3>
+                <p class="earn-description">Get coins from new connections in your circle</p>
+            </div>
+            <div class="earn-card">
+                <div class="earn-number">3️⃣</div>
+                <h3 class="earn-title">Leaderboard Rewards</h3>
+                <p class="earn-description">Weekly rank bonuses for top creators</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How to Use Section -->
+    <section class="section">
+        <h2 class="section-title">How to Use</h2>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">Step 1</div>
+                <h3 class="step-title">Sign up & Create Profile</h3>
+                <p class="step-description">Join the community and set up your creator profile</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">Step 2</div>
+                <h3 class="step-title">Explore & Connect</h3>
+                <p class="step-description">Browse prompts and connect with other creators</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">Step 3</div>
+                <h3 class="step-title">Earn Coins & Badges</h3>
+                <p class="step-description">Create content, engage, and earn rewards</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="pixel-footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <img src="{{ url_for('static', filename='images/eagle-logo.jpg') }}" alt="Eagle Logo">
+            </div>
+            <div class="footer-text">
+                Made with ❤️ by Hardik.WebQa
+            </div>
+            <div class="footer-socials">
+                <a href="https://instagram.com/prompts_library" target="_blank" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="https://discord.gg/promptslibrary" target="_blank" class="social-icon"><i class="fab fa-discord"></i></a>
+                <a href="https://linkedin.com/company/promptslibrary" target="_blank" class="social-icon"><i class="fab fa-linkedin"></i></a>
+                <a href="https://github.com/promptslibrary" target="_blank" class="social-icon"><i class="fab fa-github"></i></a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

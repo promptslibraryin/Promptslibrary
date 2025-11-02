@@ -32,6 +32,10 @@ def check_subscription():
 
 @app.route('/')
 def index():
+    return render_template('index.html')
+
+@app.route('/gallery')
+def gallery():
     category_id = request.args.get('category', type=int)
     # Sponsorships
     sponsorships = Sponsorship.query.filter(
@@ -49,7 +53,7 @@ def index():
     prompts = query.order_by(Prompt.id.desc()).paginate(page=page, per_page=per_page)
 
     return render_template(
-        'index.html',
+        'gallery.html',
         prompts=prompts,
         categories=categories,
         selected_category=category_id,
@@ -70,7 +74,7 @@ def category_page(slug):
     prompts = Prompt.query.filter_by(category_id=category.id).order_by(Prompt.id.desc()).paginate(page=page, per_page=per_page)
     categories = Category.query.all()
     return render_template(
-        'index.html',
+        'gallery.html',
         prompts=prompts,
         categories=categories,
         selected_category=category.id,
