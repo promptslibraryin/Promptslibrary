@@ -15,14 +15,17 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon-16x16.png">
     
-    <link href="{{ url_for('static', filename='css/pixel-gallery.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.12.4/dist/sweetalert2.min.css" rel="stylesheet">
     
     {% block extra_css %}{% endblock %}
 </head>
 <body class="pixel-theme">
+    <!-- Global Top Loader -->
+    <div id="top-loader" style="position: fixed; left: 0; right: 0; top: 0; height: 3px; background: linear-gradient(90deg, var(--pixel-cyan), var(--pixel-purple)); box-shadow: 0 0 12px rgba(0,255,255,0.5); transform: scaleX(0); transform-origin: left; transition: transform 0.2s ease; z-index: 3000;"></div>
     
-    <!-- Unified Pixel Header -->
+    <!-- Navbar Section: Unified Pixel Header -->
     <header class="pixel-header">
         <a href="{{ url_for('index') }}" class="pixel-logo">
             <img src="{{ url_for('static', filename='images/eagle-logo.jpg') }}" alt="Prompts Library Logo">
@@ -30,32 +33,33 @@
         </a>
         
         <nav class="pixel-nav">
-            <a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}class="active"{% endif %}>Home</a>
-            <a href="{{ url_for('gallery') }}" {% if request.endpoint == 'gallery' %}class="active"{% endif %}>Gallery</a>
-            
-            {% if current_user.is_authenticated %}
-                <!-- 3-Dot Dropdown Menu -->
+            <!-- Main Icons (Desktop top-bar; Mobile moved to bottom) -->
+            <a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}class="active"{% endif %}><i class="fas fa-home"></i> <span>Home</span></a>
+            <a href="{{ url_for('gallery') }}" {% if request.endpoint == 'gallery' %}class="active"{% endif %}><i class="fas fa-th"></i> <span>Gallery</span></a>
+            {% if current_user.is_authenticated and (current_user.is_otp_verified is defined) and current_user.is_otp_verified %}
+                <a href="{{ url_for('add_prompt') }}" {% if request.endpoint == 'add_prompt' %}class="active"{% endif %}><i class="fas fa-plus"></i> <span>Upload</span></a>
+                <a href="{{ url_for('subscription') }}" {% if request.endpoint == 'subscription' %}class="active"{% endif %}><i class="fas fa-coins"></i> <span>Buy Coins</span></a>
+                <a href="{{ url_for('public_profile', username=current_user.username) }}" {% if request.endpoint == 'public_profile' %}class="active"{% endif %}><i class="fas fa-user"></i> <span>Profile</span></a>
+                <!-- Three Dots Menu (⋯) for secondary actions -->
                 <div class="nav-dropdown">
                     <button class="nav-dropdown-btn" onclick="toggleDropdown('navDropdownMenu')">
                         <i class="fas fa-ellipsis-v"></i>
                     </button>
                     <div id="navDropdownMenu" class="nav-dropdown-content">
-                        <a href="{{ url_for('my_prompts') }}"><i class="fas fa-folder"></i> My Prompts</a>
-                        <a href="{{ url_for('saved_prompts') }}"><i class="fas fa-bookmark"></i> Saved Prompts</a>
                         {% if current_user.is_admin %}
-                            <div class="dropdown-divider"></div>
-                            <div class="dropdown-header"><i class="fas fa-shield-alt"></i> Admin</div>
+                            <div class="dropdown-header"><i class="fas fa-shield-alt"></i> Admin Section</div>
                             <a href="{{ url_for('admin_users') }}"><i class="fas fa-users"></i> Manage Users</a>
                             <a href="{{ url_for('admin_sponsorships') }}"><i class="fas fa-ad"></i> Sponsorships</a>
+                            <div class="dropdown-divider"></div>
                         {% endif %}
+                        <a href="{{ url_for('saved_prompts') }}"><i class="fas fa-bookmark"></i> Saved</a>
+                        <a href="{{ url_for('my_prompts') }}"><i class="fas fa-folder"></i> My Prompts</a>
+                        <a href="{{ url_for('logout') }}"><i class="fas fa-right-from-bracket"></i> Logout</a>
                     </div>
                 </div>
-                
-                <a href="{{ url_for('public_profile', username=current_user.username) }}" {% if request.endpoint == 'public_profile' %}class="active"{% endif %}>Profile</a>
-                <a href="{{ url_for('logout') }}">Logout</a>
             {% else %}
-                <a href="{{ url_for('login') }}">Login</a>
-                <a href="{{ url_for('register') }}">Sign Up</a>
+                <a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> <span>Login</span></a>
+                <a href="{{ url_for('register') }}"><i class="fas fa-user-plus"></i> <span>Sign Up</span></a>
             {% endif %}
         </nav>
     </header>
@@ -86,7 +90,7 @@
             <div class="nav-icon"><i class="fas fa-th"></i></div>
             <span>Gallery</span>
         </a>
-        {% if current_user.is_authenticated %}
+        {% if current_user.is_authenticated and (current_user.is_otp_verified is defined) and current_user.is_otp_verified %}
             <a href="{{ url_for('add_prompt') }}" {% if request.endpoint == 'add_prompt' %}class="active"{% endif %}>
                 <div class="nav-icon"><i class="fas fa-plus"></i></div>
                 <span>Upload</span>
@@ -95,7 +99,7 @@
                 <div class="nav-icon"><i class="fas fa-coins"></i></div>
                 <span>Buy Coins</span>
             </a>
-                        <a href="{{ url_for('public_profile', username=current_user.username) }}" {% if request.endpoint == 'public_profile' %}class="active"{% endif %}>
+            <a href="{{ url_for('public_profile', username=current_user.username) }}" {% if request.endpoint == 'public_profile' %}class="active"{% endif %}>
                 <div class="nav-icon"><i class="fas fa-user"></i></div>
                 <span>Profile</span>
             </a>
@@ -112,27 +116,7 @@
     </nav>
 
     {% block extra_js %}{% endblock %}
-    
-    <!-- Base Scripts -->
-    <script>
-        // Toggle dropdown menu
-        function toggleDropdown(dropdownId) {
-            const dropdown = document.getElementById(dropdownId);
-            dropdown.classList.toggle('show');
-        }
-
-        // Close dropdown when clicking outside
-        window.onclick = function(event) {
-            if (!event.target.matches('.nav-dropdown-btn') && !event.target.matches('.nav-dropdown-btn *')) {
-                const dropdowns = document.getElementsByClassName('nav-dropdown-content');
-                for (let i = 0; i < dropdowns.length; i++) {
-                    const openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show')) {
-                        openDropdown.classList.remove('show');
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.12.4/dist/sweetalert2.all.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

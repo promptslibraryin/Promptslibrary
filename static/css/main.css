@@ -1,0 +1,325 @@
+/* ======================
+   GLOBAL PIXEL THEME CSS
+   ====================== */
+
+/* Consolidated imports to preserve existing styles during migration */
+@import url('pixel-landing.css');
+@import url('pixel-gallery.css');
+@import url('style.css');
+@import url('styles2.css');
+
+/* ======================
+   RESPONSIVE NAVBAR RULES
+   ====================== */
+
+/* Mobile: bottom navbar icons only (hide labels) */
+@media (max-width: 768px) {
+	.mobile-navbar span { display: none; }
+	.pixel-header .pixel-nav > a { display: none; }
+	.pixel-header .nav-dropdown { display: inline-block; }
+}
+
+/* Desktop: show full top navbar, hide mobile bottom bar if desired */
+@media (min-width: 769px) {
+	.mobile-navbar { position: fixed; left: 0; right: 0; bottom: 0; display: none; }
+}
+
+/* Ensure dropdown visibility class */
+.nav-dropdown-content.show { display: block; }
+
+/* ======================
+   ADMIN PAGES (PIXEL THEME)
+   ====================== */
+.admin-page h1, .admin-page h2, .admin-page h3, .admin-page h4, .admin-page h5 {
+	font-family: 'Press Start 2P', cursive;
+	letter-spacing: 0.5px;
+	color: var(--pixel-white);
+}
+
+.admin-page .card {
+	background: rgba(26, 26, 31, 0.85);
+	border: 2px solid var(--pixel-purple);
+	border-radius: 12px;
+	box-shadow: 0 0 12px rgba(157, 78, 221, 0.15);
+}
+
+.admin-page .card.bg-primary,
+.admin-page .card.bg-success,
+.admin-page .card.bg-info {
+	background: linear-gradient(135deg, rgba(157,78,221,0.25), rgba(0,255,255,0.15));
+	border-color: var(--pixel-cyan);
+}
+
+.admin-page .table {
+	color: var(--pixel-white);
+	border-color: var(--pixel-purple);
+}
+
+.admin-page .table thead th {
+	background: rgba(11, 11, 16, 0.9);
+	border-bottom: 2px solid var(--pixel-purple);
+}
+
+.admin-page .table tbody tr {
+	background: rgba(26, 26, 31, 0.6);
+}
+
+.admin-page .table tbody tr:hover {
+	background: rgba(26, 26, 31, 0.85);
+}
+
+.admin-page .btn,
+.admin-page .page-link {
+	font-family: 'VT323', monospace;
+	font-size: 1.1rem;
+	border: 2px solid var(--pixel-purple);
+	background: rgba(11, 11, 16, 0.6);
+	color: var(--pixel-white);
+}
+
+.admin-page .btn.btn-primary {
+	background: var(--pixel-purple);
+	border-color: var(--pixel-cyan);
+}
+
+.admin-page .btn.btn-outline-secondary,
+.admin-page .btn.btn-outline-danger,
+.admin-page .btn.btn-outline-primary {
+	background: transparent;
+}
+
+.admin-page .badge.bg-success {
+	background: rgba(0, 255, 0, 0.15) !important;
+	border: 1px solid #00FF00;
+	color: #00FF00;
+}
+
+.admin-page .badge.bg-secondary {
+	background: rgba(157, 78, 221, 0.15) !important;
+	border: 1px solid var(--pixel-purple);
+	color: var(--pixel-white);
+}
+
+.admin-page .pagination .page-item.active .page-link {
+	background: var(--pixel-purple);
+	border-color: var(--pixel-cyan);
+}
+
+.admin-page .form-control, .admin-page .form-select {
+	background: rgba(11, 11, 16, 0.6);
+	border: 2px solid var(--pixel-purple);
+	color: var(--pixel-white);
+}
+
+.admin-page .form-control:focus, .admin-page .form-select:focus {
+	border-color: var(--pixel-cyan);
+	box-shadow: 0 0 10px rgba(0,255,255,0.3);
+}
+
+.admin-page .empty-state i { color: var(--pixel-purple); opacity: 0.7; }
+
+/* ======================
+   GLOBAL PIXEL BUTTONS
+   Match landing page style across all pages
+   ====================== */
+.pixel-btn {
+	font-family: 'VT323', monospace;
+	font-size: 1.1rem;
+	padding: 0.8rem 1.4rem;
+	border: 2px solid var(--pixel-purple);
+	border-radius: 8px;
+	background: rgba(11, 11, 16, 0.6);
+	color: var(--pixel-white);
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	transition: all 0.2s ease-in-out;
+}
+
+.pixel-btn:hover {
+	border-color: var(--pixel-cyan);
+	box-shadow: 0 0 14px rgba(0, 255, 255, 0.25);
+	transform: translateY(-1px);
+}
+
+.pixel-btn-primary {
+	background: linear-gradient(135deg, var(--pixel-purple), #7B2CBF);
+	border-color: var(--pixel-cyan);
+}
+
+.pixel-btn-primary:hover {
+	filter: brightness(1.05);
+	box-shadow: 0 0 18px rgba(0, 255, 255, 0.35);
+}
+
+.pixel-btn-secondary {
+	background: transparent;
+	border-color: var(--pixel-purple);
+	color: var(--pixel-purple);
+}
+
+.pixel-btn-secondary:hover {
+	border-color: var(--pixel-cyan);
+	color: var(--pixel-white);
+}
+
+/* Override to match landing hero buttons exactly */
+.pixel-btn {
+	padding: 1rem 2.5rem;
+	font-family: 'Press Start 2P', cursive;
+	font-size: 0.9rem;
+	border-width: 3px;
+	position: relative;
+	overflow: hidden;
+	cursor: pointer;
+	clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+}
+
+.pixel-btn-primary {
+	background: var(--pixel-purple);
+	border-color: var(--pixel-purple);
+	color: var(--pixel-white);
+	box-shadow: 0 0 20px rgba(157, 78, 221, 0.5);
+}
+
+.pixel-btn-primary:hover {
+	background: transparent;
+	box-shadow: 0 0 30px var(--pixel-purple), inset 0 0 30px rgba(157, 78, 221, 0.3);
+	transform: translateY(-3px);
+}
+
+.pixel-btn-secondary {
+	background: transparent;
+	border-color: var(--pixel-cyan);
+	color: var(--pixel-cyan);
+	box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+.pixel-btn-secondary:hover {
+	background: var(--pixel-cyan);
+	color: var(--pixel-bg);
+	box-shadow: 0 0 30px var(--pixel-cyan);
+	transform: translateY(-3px);
+}
+
+/* ======================
+   FORMS (Inputs/Selects/Textareas)
+   ====================== */
+.pixel-theme input[type="text"],
+.pixel-theme input[type="email"],
+.pixel-theme input[type="password"],
+.pixel-theme input[type="url"],
+.pixel-theme input[type="number"],
+.pixel-theme textarea,
+.pixel-theme select,
+.pixel-input {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 0.8rem;
+	font-family: 'VT323', monospace;
+	font-size: 1.1rem;
+	background: rgba(11, 11, 16, 0.8);
+	border: 2px solid var(--pixel-purple);
+	border-radius: 8px;
+	color: var(--pixel-white);
+	transition: all 0.3s ease;
+}
+
+.pixel-theme input:focus,
+.pixel-theme textarea:focus,
+.pixel-theme select:focus,
+.pixel-input:focus {
+	border-color: var(--pixel-cyan);
+	box-shadow: 0 0 10px var(--pixel-cyan);
+}
+
+/* Top loader active state */
+.top-loader-active #top-loader { transform: scaleX(1); }
+
+/* Compact button variant */
+.pixel-btn-sm {
+	padding: 0.55rem 1rem;
+	font-size: 0.7rem;
+	border-width: 2px;
+	clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+
+/* Danger variant for destructive actions */
+.pixel-btn-danger {
+	background: var(--pixel-red);
+	border-color: var(--pixel-orange);
+	color: var(--pixel-white);
+	box-shadow: 0 0 18px rgba(255, 69, 0, 0.35);
+}
+
+.pixel-btn-danger:hover {
+	filter: brightness(1.05);
+	box-shadow: 0 0 26px rgba(255, 140, 0, 0.45);
+	transform: translateY(-2px);
+}
+
+/* ======================
+   MODAL-SIZED BUTTONS
+   Make buttons smaller inside prompt modals
+   ====================== */
+#promptModal .pixel-btn,
+#promptModal .pixel-btn-primary,
+#promptModal .pixel-btn-secondary {
+	padding: 0.6rem 1rem;
+	font-size: 0.75rem;
+	border-width: 2px;
+	clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+
+#promptModal .pixel-btn:hover,
+#promptModal .pixel-btn-primary:hover,
+#promptModal .pixel-btn-secondary:hover {
+	transform: translateY(-2px);
+}
+
+/* Creator box styling inside modal */
+#promptModal .creator-box {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.35rem 0.6rem;
+	border: 2px solid var(--pixel-purple);
+	border-radius: 10px;
+	background: rgba(26, 26, 31, 0.7);
+}
+
+#promptModal .creator-box .creator-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	color: var(--pixel-cyan);
+	text-decoration: none;
+}
+
+#promptModal .creator-box .creator-name {
+	font-family: 'VT323', monospace;
+	font-size: 1rem;
+}
+
+#promptModal .creator-box img {
+	width: 26px;
+	height: 26px;
+	border-radius: 50%;
+	object-fit: cover;
+	border: 2px solid rgba(255,255,255,0.08);
+}
+
+/* Copy button style in modal */
+#promptModal .modal-copy-btn {
+	border-color: var(--pixel-purple);
+	background: transparent;
+	color: var(--pixel-white);
+}
+
+#promptModal .modal-copy-btn:hover {
+	border-color: var(--pixel-cyan);
+}
+
+

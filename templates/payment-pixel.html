@@ -1,27 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment - Prompts Library</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
-    <link href="{{ url_for('static', filename='css/pixel-gallery.css') }}" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
-</head>
-<body class="pixel-theme">
-    <header class="pixel-header">
-        <a href="{{ url_for('index') }}" class="pixel-logo">
-            <img src="{{ url_for('static', filename='images/eagle-logo.jpg') }}" alt="Prompts Library Logo">
-            <span>Prompts-Library</span>
-        </a>
-        <nav class="pixel-nav">
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('gallery') }}">Explore</a>
-            <a href="{{ url_for('subscription') }}">Plans</a>
-        </nav>
-    </header>
+{% extends "base-pixel.html" %}
 
+{% block title %}Payment - Prompts Library{% endblock %}
+
+{% block content %}
     <div class="pixel-container" style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 180px); padding: 2rem 1rem;">
         <div style="width: 100%; max-width: 550px; background: rgba(26, 26, 31, 0.9); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 2.5rem; box-shadow: 0 8px 30px rgba(157, 78, 221, 0.3);">
             <div style="text-align: center; margin-bottom: 2rem;">
@@ -80,25 +61,6 @@
         </div>
     </div>
 
-    <nav class="mobile-navbar">
-        <a href="{{ url_for('index') }}">
-            <div class="nav-icon"><i class="fas fa-home"></i></div>
-            <span>Home</span>
-        </a>
-        <a href="{{ url_for('gallery') }}">
-            <div class="nav-icon"><i class="fas fa-th"></i></div>
-            <span>Explore</span>
-        </a>
-        <a href="{{ url_for('subscription') }}">
-            <div class="nav-icon"><i class="fas fa-crown"></i></div>
-            <span>Plans</span>
-        </a>
-        <a href="#" class="active">
-            <div class="nav-icon"><i class="fas fa-credit-card"></i></div>
-            <span>Payment</span>
-        </a>
-    </nav>
-
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
     document.getElementById('rzp-button').onclick = function(e){
@@ -121,5 +83,4 @@
         rzp1.open();
     }
     </script>
-</body>
-</html>
+{% endblock %}

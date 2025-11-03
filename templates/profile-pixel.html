@@ -1,60 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile - Prompts Library</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon-16x16.png">
-    
-    <link href="{{ url_for('static', filename='css/pixel-gallery.css') }}" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
-</head>
-<body class="pixel-theme">
-    
-    <!-- Pixel Header -->
-    <header class="pixel-header">
-        <a href="{{ url_for('index') }}" class="pixel-logo">
-            <img src="{{ url_for('static', filename='images/eagle-logo.jpg') }}" alt="Prompts Library Logo">
-            <span>Prompts-Library</span>
-        </a>
-        <nav class="pixel-nav">
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('gallery') }}">Explore</a>
-            {% if current_user.is_authenticated %}
-                {% if current_user.is_admin %}
-                    <a href="{{ url_for('add_prompt') }}">Upload</a>
-                    <a href="{{ url_for('my_prompts') }}">My Prompts</a>
-                {% endif %}
-                <a href="{{ url_for('saved_prompts') }}">Saved</a>
-                <a href="{{ url_for('profile') }}" class="active">Profile</a>
-                {% if current_user.is_admin %}
-                    <a href="{{ url_for('admin_users') }}">Admin</a>
-                {% endif %}
-                <a href="{{ url_for('logout') }}">Logout</a>
-            {% else %}
-                <a href="{{ url_for('login') }}">Login</a>
-                <a href="{{ url_for('register') }}">Sign Up</a>
-            {% endif %}
-        </nav>
-    </header>
+{% extends "base-pixel.html" %}
 
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="pixel-container" style="padding-top: 1rem;">
-                {% for category, message in messages %}
-                    <div style="padding: 1rem; margin-bottom: 1rem; background: rgba(157, 78, 221, 0.2); border: 2px solid var(--pixel-purple); border-radius: 8px; font-family: 'VT323', monospace; font-size: 1.1rem;">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
+{% block title %}Profile - Prompts Library{% endblock %}
 
-    <!-- Main Content -->
-    <div class="pixel-container">
+{% block content %}
+<div class="pixel-container">
         <div class="page-header">
             <h1 class="page-title">User Profile</h1>
             <p class="page-subtitle">Manage your account settings</p>
@@ -228,71 +177,4 @@
             </form>
         </div>
     </div>
-
-    <!-- Mobile Bottom Navbar -->
-    <nav class="mobile-navbar">
-        <a href="{{ url_for('index') }}">
-            <div class="nav-icon"><i class="fas fa-home"></i></div>
-            <span>Home</span>
-        </a>
-        <a href="{{ url_for('gallery') }}">
-            <div class="nav-icon"><i class="fas fa-th"></i></div>
-            <span>Explore</span>
-        </a>
-        {% if current_user.is_authenticated and current_user.is_admin %}
-            <a href="{{ url_for('add_prompt') }}">
-                <div class="nav-icon"><i class="fas fa-plus"></i></div>
-                <span>Upload</span>
-            </a>
-        {% endif %}
-        {% if current_user.is_authenticated %}
-            <a href="{{ url_for('saved_prompts') }}">
-                <div class="nav-icon"><i class="fas fa-bookmark"></i></div>
-                <span>Saved</span>
-            </a>
-            <a href="{{ url_for('profile') }}" class="active">
-                <div class="nav-icon"><i class="fas fa-user"></i></div>
-                <span>Profile</span>
-            </a>
-        {% else %}
-            <a href="{{ url_for('login') }}">
-                <div class="nav-icon"><i class="fas fa-sign-in-alt"></i></div>
-                <span>Login</span>
-            </a>
-        {% endif %}
-    </nav>
-
-    <script>
-        // Profile picture preview
-        document.getElementById('profile_pic').addEventListener('change', function(e) {
-            if (e.target.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('profileImage').src = e.target.result;
-                };
-                reader.readAsDataURL(e.target.files[0]);
-            }
-        });
-
-        // Username validation
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const username = document.getElementById('username').value;
-            const pattern = /^[A-Za-z0-9_]+$/;
-
-            if (!pattern.test(username)) {
-                e.preventDefault();
-                alert('Username can only contain letters, numbers, and underscores!');
-                return false;
-            }
-        });
-
-        // Responsive grid for mobile
-        if (window.innerWidth <= 768) {
-            const grids = document.querySelectorAll('[style*="grid-template-columns: 1fr 1fr"]');
-            grids.forEach(grid => {
-                grid.style.gridTemplateColumns = '1fr';
-            });
-        }
-    </script>
-</body>
-</html>
+{% endblock %}
