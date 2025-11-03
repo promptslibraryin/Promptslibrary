@@ -1,94 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Explore AI Prompts - Prompts Library | ChatGPT, Midjourney & Gemini Prompts</title>
-    <meta name="description" content="Browse {{ prompts.total }} AI prompts for ChatGPT, Midjourney, Gemini and more. Free and premium prompts for content creation, design, coding, and business. Updated daily.">
-    <meta name="keywords" content="AI prompts, ChatGPT prompts, Midjourney prompts, Gemini prompts, free AI prompts, prompt gallery">
-    
-    <meta property="og:title" content="Explore AI Prompts - Prompts Library">
-    <meta property="og:description" content="Browse thousands of AI prompts for ChatGPT, Midjourney, Gemini and more.">
-    <meta property="og:image" content="{{ url_for('static', filename='images/pm.png', _external=True) }}">
-    <meta property="og:url" content="{{ request.url }}">
-    
-    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon-16x16.png">
-    
-    <link href="{{ url_for('static', filename='css/pixel-gallery.css') }}" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+{% extends 'base-pixel.html' %}
 
-    <!-- Structured Data for ItemList of Prompts -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "ItemList",
-      "name": "AI Prompts Collection",
-      "description": "Curated collection of AI prompts for ChatGPT, Midjourney, Gemini and other AI tools",
-      "numberOfItems": {{ prompts.total }},
-      "itemListElement": [
-        {% for prompt in prompts.items[:10] %}
-        {
-          "@type": "ListItem",
-          "position": {{ loop.index }},
-          "item": {
-            "@type": "CreativeWork",
-            "name": "{{ prompt.title|replace('"', '\\"') }}",
-            "description": "{{ prompt.description[:200]|replace('"', '\\"') }}",
-            "image": "{{ prompt.image_url }}",
-            "author": {
-              "@type": "Person",
-              "name": "{{ prompt.creator.username }}"
-            },
-            "datePublished": "{{ prompt.created_at.isoformat() }}",
-            "genre": "{{ prompt.category.name }}",
-            "keywords": "AI prompts, {{ prompt.category.name }}, ChatGPT, Midjourney, Gemini"
-          }
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-      ]
-    }
-    </script>
-</head>
-<body class="pixel-theme">
-    
-    <!-- Pixel Header -->
-    <header class="pixel-header">
-        <a href="{{ url_for('index') }}" class="pixel-logo">
-            <img src="{{ url_for('static', filename='images/eagle-logo.jpg') }}" alt="Prompts Library Logo">
-            <span>Prompts-Library</span>
-        </a>
-        <nav class="pixel-nav">
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('gallery') }}" class="active">Explore</a>
-            {% if current_user.is_authenticated %}
-                {% if current_user.is_admin %}
-                    <a href="{{ url_for('add_prompt') }}">Upload</a>
-                {% endif %}
-                <a href="{{ url_for('public_profile', username=current_user.username) }}">Profile</a>
-                <a href="{{ url_for('logout') }}">Logout</a>
-            {% else %}
-                <a href="{{ url_for('login') }}">Login</a>
-                <a href="{{ url_for('register') }}">Sign Up</a>
-            {% endif %}
-        </nav>
-    </header>
+{% block title %}Explore AI Prompts - Prompts Library{% endblock %}
 
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="pixel-container" style="padding-top: 1rem;">
-                {% for category, message in messages %}
-                    <div style="padding: 1rem; margin-bottom: 1rem; background: rgba(157, 78, 221, 0.2); border: 2px solid var(--pixel-purple); border-radius: 8px; font-family: 'VT323', monospace; font-size: 1.1rem;">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
+{% block meta %}
+<meta name="description" content="Browse {{ prompts.total }} AI prompts for ChatGPT, Midjourney, Gemini and more. Free and premium prompts for content creation, design, coding, and business. Updated daily.">
+<meta name="keywords" content="AI prompts, ChatGPT prompts, Midjourney prompts, Gemini prompts, free AI prompts, prompt gallery">
+<meta property="og:title" content="Explore AI Prompts - Prompts Library">
+<meta property="og:description" content="Browse thousands of AI prompts for ChatGPT, Midjourney, Gemini and more.">
+<meta property="og:image" content="{{ url_for('static', filename='images/pm.png', _external=True) }}">
+<meta property="og:url" content="{{ request.url }}">
+{% endblock %}
 
-    <!-- Main Content -->
+{% block content %}
+    <!-- Gallery Page Content -->
     <div class="pixel-container">
         <!-- Page Header -->
         <div class="page-header">
@@ -170,39 +94,6 @@
         {% endif %}
     </div>
 
-    <!-- Mobile Bottom Navbar -->
-    <nav class="mobile-navbar">
-        <a href="{{ url_for('index') }}">
-            <div class="nav-icon"><i class="fas fa-home"></i></div>
-            <span>Home</span>
-        </a>
-        <a href="{{ url_for('gallery') }}" class="active">
-            <div class="nav-icon"><i class="fas fa-th"></i></div>
-            <span>Explore</span>
-        </a>
-        {% if current_user.is_authenticated and current_user.is_admin %}
-            <a href="{{ url_for('add_prompt') }}">
-                <div class="nav-icon"><i class="fas fa-plus"></i></div>
-                <span>Upload</span>
-            </a>
-        {% endif %}
-        {% if current_user.is_authenticated %}
-            <a href="{{ url_for('saved_prompts') }}">
-                <div class="nav-icon"><i class="fas fa-bookmark"></i></div>
-                <span>Saved</span>
-            </a>
-            <a href="{{ url_for('public_profile', username=current_user.username) }}">
-                <div class="nav-icon"><i class="fas fa-user"></i></div>
-                <span>Profile</span>
-            </a>
-        {% else %}
-            <a href="{{ url_for('login') }}">
-                <div class="nav-icon"><i class="fas fa-sign-in-alt"></i></div>
-                <span>Login</span>
-            </a>
-        {% endif %}
-    </nav>
-
     <!-- Prompt Detail Modal (Pixel-styled) -->
     <div id="promptModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 11, 16, 0.95); z-index: 2000; overflow-y: auto; padding: 2rem 1rem;" onclick="closeModal(event)">
         <div style="max-width: 900px; margin: 0 auto; background: rgba(26, 26, 31, 0.95); border: 2px solid var(--pixel-purple); border-radius: 12px; overflow: hidden;" onclick="event.stopPropagation()">
@@ -213,239 +104,37 @@
             <div id="modalContent" style="padding: 1.5rem; font-family: 'VT323', monospace; font-size: 1.1rem; color: var(--pixel-white);"></div>
         </div>
     </div>
+{% endblock %}
 
-    <script>
-        // Validate image URL (only allow http/https)
-        function isValidImageUrl(url) {
-            try {
-                const urlObj = new URL(url, window.location.origin);
-                return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
-            } catch {
-                return false;
-            }
-        }
-
-        // Open prompt modal
-        function openPromptModal(promptId, slug) {
-            const modal = document.getElementById('promptModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalContent = document.getElementById('modalContent');
-            
-            fetch(`/prompts/${slug}`)
-                .then(response => response.json())
-                .then(data => {
-                    modalTitle.textContent = data.title;
-                    
-                    // Safely create modal content
-                    const contentDiv = document.createElement('div');
-                    
-                    // Create image section
-                    const imageDiv = document.createElement('div');
-                    imageDiv.style.marginBottom = '1.5rem';
-                    const img = document.createElement('img');
-                    // Validate and set image URL
-                    if (isValidImageUrl(data.image_url)) {
-                        img.src = data.image_url;
-                    } else {
-                        img.src = '/static/images/placeholder.png';  // Safe fallback
-                    }
-                    img.alt = data.title;
-                    img.style.width = '100%';
-                    img.style.borderRadius = '8px';
-                    img.style.border = '2px solid var(--pixel-purple)';
-                    imageDiv.appendChild(img);
-                    contentDiv.appendChild(imageDiv);
-                    
-                    // Create category and creator section
-                    const metaDiv = document.createElement('div');
-                    metaDiv.style.marginBottom = '1rem';
-                    const categorySpan = document.createElement('span');
-                    categorySpan.style.padding = '0.4rem 0.8rem';
-                    categorySpan.style.background = 'rgba(157, 78, 221, 0.3)';
-                    categorySpan.style.border = '1px solid var(--pixel-cyan)';
-                    categorySpan.style.borderRadius = '6px';
-                    categorySpan.style.display = 'inline-block';
-                    categorySpan.style.marginRight = '0.5rem';
-                    categorySpan.textContent = data.category;
-                    const creatorSpan = document.createElement('span');
-                    creatorSpan.style.color = 'var(--pixel-cyan)';
-                    creatorSpan.textContent = 'by ';
-
-                    const creatorLink = document.createElement('a');
-                    // Link to the public profile route: /user/<username>
-                    creatorLink.href = `/user/${encodeURIComponent(data.creator)}`;
-                    creatorLink.style.color = 'var(--pixel-cyan)';
-                    creatorLink.className = 'creator-link';
-                    // Prevent the outer card/modal click handlers when clicking the link
-                    creatorLink.addEventListener('click', function(e) { e.stopPropagation(); });
-
-                    // Creator avatar (use provided image or fallback)
-                    const creatorImg = document.createElement('img');
-                    creatorImg.src = data.creator_profile_pic || '/static/images/default-profile.svg';
-                    creatorImg.alt = data.creator + "'s profile";
-                    creatorImg.style.width = '28px';
-                    creatorImg.style.height = '28px';
-                    creatorImg.style.borderRadius = '50%';
-                    creatorImg.style.objectFit = 'cover';
-                    creatorImg.style.margin = '0 0.5rem 0 0';
-                    creatorImg.style.verticalAlign = 'middle';
-                    creatorImg.style.border = '2px solid rgba(255,255,255,0.08)';
-                    creatorImg.addEventListener('click', function(e) { e.stopPropagation(); });
-
-                    // Build a neat "Created by" box for the modal
-                    creatorLink.appendChild(creatorImg);
-                    const nameNode = document.createElement('span');
-                    nameNode.textContent = data.creator;
-                    nameNode.className = 'creator-name';
-                    nameNode.style.verticalAlign = 'middle';
-                    creatorLink.appendChild(nameNode);
-
-                    const creatorBox = document.createElement('div');
-                    creatorBox.className = 'creator-box';
-
-                    const createdByLabel = document.createElement('span');
-                    createdByLabel.textContent = 'by';
-                    createdByLabel.style.fontFamily = "'VT323', monospace";
-                    createdByLabel.style.color = 'rgba(248,249,250,0.75)';
-                    createdByLabel.style.fontSize = '0.9rem';
-
-                    // Put label and link (avatar + name) inside the box
-                    creatorBox.appendChild(createdByLabel);
-                    creatorBox.appendChild(creatorLink);
-
-                    // Append category then creator box
-                    metaDiv.appendChild(categorySpan);
-                    metaDiv.appendChild(creatorBox);
-                    contentDiv.appendChild(metaDiv);
-                    
-                    // Create description section
-                    const descDiv = document.createElement('div');
-                    descDiv.style.marginBottom = '1rem';
-                    const descHeader = document.createElement('h4');
-                    descHeader.style.color = 'var(--pixel-gold)';
-                    descHeader.style.fontFamily = "'Orbitron', sans-serif";
-                    descHeader.style.marginBottom = '0.5rem';
-                    descHeader.textContent = 'Description';
-                    const descText = document.createElement('p');
-                    descText.textContent = data.description;
-                    descDiv.appendChild(descHeader);
-                    descDiv.appendChild(descText);
-                    contentDiv.appendChild(descDiv);
-                    
-                    if (data.can_view_details) {
-                        const promptSection = document.createElement('div');
-                        promptSection.style.marginBottom = '1rem';
-                        promptSection.innerHTML = `
-                            <h4 style="color: var(--pixel-gold); font-family: 'Orbitron', sans-serif; margin-bottom: 0.5rem;">Prompt</h4>
-                            <div style="background: rgba(11, 11, 16, 0.8); padding: 1rem; border-radius: 8px; border: 2px solid var(--pixel-purple);">
-                                <p id="modalPromptText" style="margin-bottom: 0;"></p>
-                                <button id="copyPromptBtn" class="pixel-btn" style="margin-top: 1rem; font-size: 0.9rem;">Copy Prompt</button>
-                            </div>
-                        `;
-                        promptSection.querySelector('#modalPromptText').textContent = data.prompt_text;
-                        contentDiv.appendChild(promptSection);
-                        
-                        const saveBtn = document.createElement('button');
-                        saveBtn.id = 'toggleSaveBtn';
-                        saveBtn.className = 'pixel-btn' + (data.is_saved ? ' pixel-btn-primary' : '');
-                        saveBtn.style.marginTop = '1rem';
-                        saveBtn.textContent = data.is_saved ? 'Unsave' : 'Save Prompt';
-                        saveBtn.dataset.promptId = data.id;
-                        saveBtn.dataset.isSaved = data.is_saved;
-                        contentDiv.appendChild(saveBtn);
-                    } else {
-                        contentDiv.innerHTML += `
-                            <div style="background: rgba(157, 78, 221, 0.1); border: 2px solid var(--pixel-purple); border-radius: 8px; padding: 2rem; text-align: center; margin-top: 1rem;">
-                                <p style="font-size: 1.2rem; margin-bottom: 1rem;">Unlock full prompt details</p>
-                                ${data.can_start_trial ? 
-                                    '<a href="/subscription" class="pixel-btn pixel-btn-primary">Start Free Trial</a>' : 
-                                    '<a href="/subscription" class="pixel-btn pixel-btn-primary">Upgrade Now</a>'
-                                }
-                            </div>
-                        `;
-                    }
-                    
-                    // Add Edit button for authorized users
-                    if (data.can_edit) {
-                        const editBtn = document.createElement('button');
-                        editBtn.className = 'pixel-btn pixel-btn-primary';
-                        editBtn.style.marginTop = '1rem';
-                        editBtn.style.marginLeft = '0.5rem';
-                        editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
-                        editBtn.addEventListener('click', function() {
-                            window.location.href = `/prompts/${data.slug}/edit`;
-                        });
-                        contentDiv.appendChild(editBtn);
-                    }
-                    
-                    modalContent.innerHTML = '';
-                    modalContent.appendChild(contentDiv);
-                    
-                    // Add event listeners after DOM is ready
-                    const copyBtn = document.getElementById('copyPromptBtn');
-                    if (copyBtn) {
-                        copyBtn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            const text = document.getElementById('modalPromptText').textContent;
-                            navigator.clipboard.writeText(text).then(() => {
-                                copyBtn.textContent = 'Copied!';
-                                setTimeout(() => {
-                                    copyBtn.textContent = 'Copy Prompt';
-                                }, 2000);
-                            });
-                        });
-                    }
-                    
-                    const saveBtn = document.getElementById('toggleSaveBtn');
-                    if (saveBtn) {
-                        saveBtn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            const promptId = saveBtn.dataset.promptId;
-                            const isSaved = saveBtn.dataset.isSaved === 'true';
-                            const endpoint = isSaved ? `/unsave_prompt/${promptId}` : `/save_prompt/${promptId}`;
-                            
-                            fetch(endpoint, {
-                                method: 'POST',
-                                headers: {'Content-Type': 'application/json'}
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    if (isSaved) {
-                                        saveBtn.textContent = 'Save Prompt';
-                                        saveBtn.classList.remove('pixel-btn-primary');
-                                        saveBtn.dataset.isSaved = 'false';
-                                    } else {
-                                        saveBtn.textContent = 'Unsave';
-                                        saveBtn.classList.add('pixel-btn-primary');
-                                        saveBtn.dataset.isSaved = 'true';
-                                    }
-                                }
-                            })
-                            .catch(error => console.error('Error:', error));
-                        });
-                    }
-                    
-                    modal.style.display = 'block';
-                    document.body.style.overflow = 'hidden';
-                })
-                .catch(error => console.error('Error:', error));
-        }
-
-        // Close modal
-        function closeModal(event) {
-            if (!event || event.target.id === 'promptModal') {
-                document.getElementById('promptModal').style.display = 'none';
-                document.body.style.overflow = 'auto';
-            }
-        }
-
-        // ESC key to close modal
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeModal();
-            }
-        });
-    </script>
-</body>
-</html>
+{% block extra_js %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "AI Prompts Collection",
+  "description": "Curated collection of AI prompts for ChatGPT, Midjourney, Gemini and other AI tools",
+  "numberOfItems": {{ prompts.total }},
+  "itemListElement": [
+    {% for prompt in prompts.items[:10] %}
+    {
+      "@type": "ListItem",
+      "position": {{ loop.index }},
+      "item": {
+        "@type": "CreativeWork",
+        "name": "{{ prompt.title|replace('"', '\\"') }}",
+        "description": "{{ prompt.description[:200]|replace('"', '\\"') }}",
+        "image": "{{ prompt.image_url }}",
+        "author": {
+          "@type": "Person",
+          "name": "{{ prompt.creator.username }}"
+        },
+        "datePublished": "{{ prompt.created_at.isoformat() }}",
+        "genre": "{{ prompt.category.name }}",
+        "keywords": "AI prompts, {{ prompt.category.name }}, ChatGPT, Midjourney, Gemini"
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endblock %}

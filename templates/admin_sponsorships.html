@@ -1,15 +1,15 @@
-{% extends "base.html" %}
+{% extends "base-pixel.html" %}
 
 {% block title %}Manage Sponsorships - Prompt Gallery{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="pixel-container admin-page">
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
-                <h1 class="mb-0">Manage Sponsorships</h1>
+                <h1 class="mb-0"><i class="fas fa-ad" style="margin-right: 0.5rem;"></i>Manage Sponsorships</h1>
                 <a href="{{ url_for('add_sponsorship') }}" class="btn btn-primary">
-                    <i data-feather="plus"></i> Add New Sponsorship
+                    <i class="fas fa-plus"></i> Add New Sponsorship
                 </a>
             </div>
 
@@ -60,14 +60,14 @@
                                             <button type="button" class="btn btn-sm btn-outline-secondary" 
                                                     onclick="toggleSponsorship({{ sponsorship.id }})">
                                                 {% if sponsorship.is_active %}
-                                                    <i data-feather="pause"></i> Deactivate
+                                                    <i class="fas fa-pause"></i> Deactivate
                                                 {% else %}
-                                                    <i data-feather="play"></i> Activate
+                                                    <i class="fas fa-play"></i> Activate
                                                 {% endif %}
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger" 
                                                     onclick="deleteSponsorship({{ sponsorship.id }})">
-                                                <i data-feather="trash-2"></i> Delete
+                                                <i class="fas fa-trash"></i> Delete
                                             </button>
                                         </div>
                                     </td>
@@ -79,7 +79,7 @@
             {% else %}
                 <div class="text-center py-5">
                     <div class="empty-state">
-                        <i data-feather="star" size="48" class="mb-3"></i>
+                        <i class="fas fa-star" style="font-size: 3rem;" class="mb-3"></i>
                         <h3>No sponsorships found</h3>
                         <p class="text-muted">Create your first sponsorship to start promoting client content.</p>
                         <a href="{{ url_for('add_sponsorship') }}" class="btn btn-primary">Add First Sponsorship</a>
@@ -90,6 +90,7 @@
     </div>
 </div>
 
+{% block extra_js %}
 <script>
 async function toggleSponsorship(sponsorshipId) {
     try {
@@ -135,4 +136,5 @@ async function deleteSponsorship(sponsorshipId) {
     }
 }
 </script>
+{% endblock %}
 {% endblock %}

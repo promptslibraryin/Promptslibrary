@@ -1,44 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prompts Library | India's #1 AI Social & Gamified Platform</title>
-    <meta name="description" content="India's first AI-powered social platform where creators share prompts, connect with circles, and earn coins through gamified creativity.">
-    <meta name="keywords" content="AI prompts, ChatGPT prompts, Midjourney prompts, Gemini prompts, AI platform India, earn with AI, creator platform">
-    
-    <meta property="og:title" content="Prompts Library - India's #1 AI Social & Gamified Platform">
-    <meta property="og:description" content="Explore, Create, and Earn with AI-powered content. Join India's premier AI creator community.">
-    <meta property="og:image" content="{{ url_for('static', filename='images/pm.png', _external=True) }}">
-    <meta property="og:url" content="{{ request.url }}">
-    
-    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon-16x16.png">
-    
-    <link href="{{ url_for('static', filename='css/pixel-landing.css') }}" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
-</head>
-<body class="pixel-landing">
-    
-    <!-- Header -->
-    <header class="pixel-header">
-        <div class="pixel-logo">
-            <img src="{{ url_for('static', filename='images/eagle-logo.jpg') }}" alt="Prompts Library Eagle Logo">
-            <span>Prompts-Library</span>
-        </div>
-        <nav class="pixel-nav">
-            <a href="{{ url_for('gallery') }}">Gallery</a>
-            {% if current_user.is_authenticated %}
-                <a href="{{ url_for('public_profile', username=current_user.username) }}">Profile</a>
-                <a href="{{ url_for('logout') }}">Logout</a>
-            {% else %}
-                <a href="{{ url_for('login') }}">Login</a>
-                <a href="{{ url_for('register') }}">Sign Up</a>
-            {% endif %}
-        </nav>
-    </header>
+{% extends "base-pixel.html" %}
 
+{% block title %}Prompts Library | India's #1 AI Social & Gamified Platform{% endblock %}
+
+{% block meta %}
+<meta name="description" content="India's first AI-powered social platform where creators share prompts, connect with circles, and earn coins through gamified creativity.">
+<meta name="keywords" content="AI prompts, ChatGPT prompts, Midjourney prompts, Gemini prompts, AI platform India, earn with AI, creator platform">
+<meta property="og:title" content="Prompts Library - India's #1 AI Social & Gamified Platform">
+<meta property="og:description" content="Explore, Create, and Earn with AI-powered content. Join India's premier AI creator community.">
+<meta property="og:image" content="{{ url_for('static', filename='images/eagle-logo', _external=True) }}">
+<meta property="og:url" content="{{ request.url }}">
+{% endblock %}
+
+{% block content %}
     <!-- Hero Section -->
     <section class="hero-section">
         <div class="floating-particles">
@@ -229,13 +202,11 @@
                 Made with ❤️ by Hardik.WebQa
             </div>
             <div class="footer-socials">
-                <a href="https://instagram.com/prompts_library" target="_blank" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="https://instagram.com/hardik.webqa" target="_blank" class="social-icon"><i class="fab fa-instagram"></i></a>
                 <a href="https://discord.gg/promptslibrary" target="_blank" class="social-icon"><i class="fab fa-discord"></i></a>
                 <a href="https://linkedin.com/company/promptslibrary" target="_blank" class="social-icon"><i class="fab fa-linkedin"></i></a>
                 <a href="https://github.com/promptslibrary" target="_blank" class="social-icon"><i class="fab fa-github"></i></a>
             </div>
         </div>
     </footer>
-
-</body>
-</html>
+{% endblock %}

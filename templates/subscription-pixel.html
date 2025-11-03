@@ -1,13 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subscription Plans - Prompts Library</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
-    <link href="{{ url_for('static', filename='css/pixel-gallery.css') }}" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+{% extends "base-pixel.html" %}
+
+{% block title %}Subscription Plans - Prompts Library{% endblock %}
+
+{% block extra_css %}
     <style>
         .plan-card { background: rgba(26, 26, 31, 0.9); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; transition: all 0.3s ease; }
         .plan-card:hover { border-color: var(--pixel-cyan); box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); transform: translateY(-5px); }
@@ -17,24 +12,9 @@
         .feature-list li { padding: 0.5rem 0; font-family: 'VT323', monospace; font-size: 1.1rem; color: rgba(248, 249, 250, 0.9); }
         .feature-list li i { color: var(--pixel-cyan); margin-right: 0.5rem; }
     </style>
-</head>
-<body class="pixel-theme">
-    <header class="pixel-header">
-        <a href="{{ url_for('index') }}" class="pixel-logo">
-            <img src="{{ url_for('static', filename='images/eagle-logo.jpg') }}" alt="Prompts Library Logo">
-            <span>Prompts-Library</span>
-        </a>
-        <nav class="pixel-nav">
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('gallery') }}">Explore</a>
-            {% if current_user.is_authenticated %}
-                <a href="{{ url_for('profile') }}">Profile</a>
-            {% else %}
-                <a href="{{ url_for('login') }}">Login</a>
-            {% endif %}
-        </nav>
-    </header>
+{% endblock %}
 
+{% block content %}
     <div class="pixel-container" style="padding: 2rem 1rem;">
         <div style="text-align: center; margin-bottom: 3rem;">
             <h1 style="font-family: 'Press Start 2P', cursive; font-size: 2rem; background: linear-gradient(135deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; filter: drop-shadow(0 0 15px #FFD700);">Choose Your Plan</h1>
@@ -114,26 +94,4 @@
             </div>
         {% endif %}
     </div>
-
-    <nav class="mobile-navbar">
-        <a href="{{ url_for('index') }}">
-            <div class="nav-icon"><i class="fas fa-home"></i></div>
-            <span>Home</span>
-        </a>
-        <a href="{{ url_for('gallery') }}">
-            <div class="nav-icon"><i class="fas fa-th"></i></div>
-            <span>Explore</span>
-        </a>
-        <a href="{{ url_for('subscription') }}" class="active">
-            <div class="nav-icon"><i class="fas fa-crown"></i></div>
-            <span>Premium</span>
-        </a>
-        {% if current_user.is_authenticated %}
-            <a href="{{ url_for('profile') }}">
-                <div class="nav-icon"><i class="fas fa-user"></i></div>
-                <span>Profile</span>
-            </a>
-        {% endif %}
-    </nav>
-</body>
-</html>
+{% endblock %}

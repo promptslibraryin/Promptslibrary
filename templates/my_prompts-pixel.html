@@ -43,13 +43,13 @@
                     </div>
                     <div style="padding: 1rem; background: rgba(26, 26, 31, 0.8); border-top: 2px solid var(--pixel-purple);">
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
-                            <button onclick="openPromptModal({{ prompt.id }}, '{{ prompt.slug }}')" class="pixel-btn" style="font-size: 0.9rem; padding: 0.6rem;">
+                            <button onclick="openPromptModal({{ prompt.id }}, '{{ prompt.slug }}')" class="pixel-btn pixel-btn-secondary pixel-btn-sm">
                                 <i class="fas fa-eye"></i> View
                             </button>
-                            <button onclick="window.location.href='/prompts/{{ prompt.slug }}/edit'" class="pixel-btn" style="font-size: 0.9rem; padding: 0.6rem; background: var(--pixel-purple);">
+                            <button onclick="window.location.href='/prompts/{{ prompt.slug }}/edit'" class="pixel-btn pixel-btn-primary pixel-btn-sm">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
-                            <button onclick="deletePrompt({{ prompt.id }})" class="pixel-btn" style="font-size: 0.9rem; padding: 0.6rem; background: var(--pixel-red);">
+                            <button onclick="deletePrompt({{ prompt.id }})" class="pixel-btn pixel-btn-danger pixel-btn-sm">
                                 <i class="fas fa-trash"></i> Delete
                             </button>
                         </div>
@@ -99,99 +99,4 @@
         <div id="modalContent" style="padding: 1.5rem; font-family: 'VT323', monospace; font-size: 1.1rem; color: var(--pixel-white);"></div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    function openPromptModal(promptId, slug) {
-        const modal = document.getElementById('promptModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalContent = document.getElementById('modalContent');
-        
-        fetch(`/prompts/${slug}`)
-            .then(response => response.json())
-            .then(data => {
-                modalTitle.textContent = data.title;
-                
-                modalContent.innerHTML = `
-                    <div style="margin-bottom: 1.5rem;">
-                        <img src="${data.image_url}" alt="${data.title}" style="width: 100%; border-radius: 8px; border: 2px solid var(--pixel-purple);">
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <span style="padding: 0.4rem 0.8rem; background: rgba(157, 78, 221, 0.3); border: 1px solid var(--pixel-cyan); border-radius: 6px; display: inline-block; margin-right: 0.5rem;">${data.category}</span>
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <h4 style="color: var(--pixel-gold); font-family: 'Orbitron', sans-serif; margin-bottom: 0.5rem;">Description</h4>
-                        <p>${data.description}</p>
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <h4 style="color: var(--pixel-gold); font-family: 'Orbitron', sans-serif; margin-bottom: 0.5rem;">Prompt</h4>
-                        <div style="background: rgba(11, 11, 16, 0.8); padding: 1rem; border-radius: 8px; border: 2px solid var(--pixel-purple);">
-                            <p style="margin-bottom: 0;">${data.prompt_text}</p>
-                            <button onclick="copyPrompt('${data.prompt_text.replace(/'/g, "\\'")}', event)" class="pixel-btn" style="margin-top: 1rem; font-size: 0.9rem;">Copy Prompt</button>
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                        <button onclick="window.location.href='/prompts/${data.slug}/edit'" class="pixel-btn pixel-btn-primary">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                        <button onclick="deletePrompt(${data.id})" class="pixel-btn" style="background: var(--pixel-red);">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                `;
-                
-                modal.style.display = 'block';
-                document.body.style.overflow = 'hidden';
-            })
-            .catch(error => console.error('Error:', error));
-    }
-
-    function closeModal(event) {
-        if (!event || event.target.id === 'promptModal') {
-            document.getElementById('promptModal').style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-    }
-
-    function copyPrompt(text, event) {
-        event.stopPropagation();
-        navigator.clipboard.writeText(text).then(() => {
-            event.target.innerHTML = '<i class="fas fa-check"></i> Copied!';
-            setTimeout(() => {
-                event.target.innerHTML = 'Copy Prompt';
-            }, 2000);
-        });
-    }
-
-    function deletePrompt(promptId) {
-        if (confirm('Are you sure you want to delete this prompt? This action cannot be undone.')) {
-            fetch(`/delete_prompt/${promptId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    closeModal();
-                    location.reload();
-                } else {
-                    alert(data.message || 'Error deleting prompt');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error deleting prompt');
-            });
-        }
-    }
-
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape') {
-            closeModal();
-        }
-    });
-</script>
 {% endblock %}

@@ -1,14 +1,14 @@
-{% extends "base.html" %}
+{% extends "base-pixel.html" %}
 
 {% block title %}Add Sponsorship - Prompt Gallery{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="pixel-container admin-page">
     <div class="row">
         <div class="col-lg-8 mx-auto">
             <div class="card mt-4">
                 <div class="card-body">
-                    <h2 class="card-title mb-4">Add New Sponsorship</h2>
+                    <h2 class="card-title mb-4"><i class="fas fa-ad" style="margin-right: 0.5rem;"></i>Add New Sponsorship</h2>
                     
                     <form method="POST" enctype="multipart/form-data">
                         <div class="mb-3">
@@ -40,13 +40,13 @@
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="image_source" id="image_url_radio" value="url" checked>
                                     <label class="form-check-label" for="image_url_radio">
-                                        <i data-feather="link"></i> Image URL
+                                        <i class="fas fa-link"></i> Image URL
                                     </label>
                                 </div>
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="image_source" id="image_upload_radio" value="upload">
                                     <label class="form-check-label" for="image_upload_radio">
-                                        <i data-feather="upload"></i> Upload Image
+                                        <i class="fas fa-upload"></i> Upload Image
                                     </label>
                                 </div>
                             </div>
@@ -80,6 +80,7 @@
     </div>
 </div>
 
+{% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const urlRadio = document.getElementById('image_url_radio');
@@ -145,8 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Initialize feather icons
-    feather.replace();
 });
 </script>
+{% endblock %}
 {% endblock %}

@@ -9,6 +9,28 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeImageLoading();
 });
 
+// ======================
+// GLOBAL TOP LOADER
+// ======================
+function showTopLoader() {
+    document.documentElement.classList.add('top-loader-active');
+}
+function hideTopLoader() {
+    document.documentElement.classList.remove('top-loader-active');
+}
+
+// Auto-bind to forms that should show loading
+document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('form.show-loading');
+    forms.forEach(form => {
+        form.addEventListener('submit', function() {
+            showTopLoader();
+            // Safety timeout to hide after 10s if not redirected
+            setTimeout(hideTopLoader, 10000);
+        });
+    });
+});
+
 // Event Listeners
 function initializeEventListeners() {
     // Card click events
@@ -365,9 +387,8 @@ async function savePromptChanges() {
 
 // Delete prompt
 async function deletePrompt(promptId) {
-    if (!confirm('Are you sure you want to delete this prompt? This action cannot be undone.')) {
-        return;
-    }
+    const ok = await confirmDialog({ title: 'Delete this prompt?', text: 'This action cannot be undone.', confirmText: 'Delete', icon: 'error' });
+    if (!ok) return;
     
     try {
         const response = await fetch(`/delete_prompt/${promptId}`, {
@@ -377,7 +398,7 @@ async function deletePrompt(promptId) {
         const result = await response.json();
         
         if (result.success) {
-            showAlert(result.message, 'success');
+            showAlert(result.message || 'Prompt deleted', 'success');
             // Remove the prompt card from the page
             const promptElement = document.querySelector(`[data-prompt-id="${promptId}"]`);
             if (promptElement) {
@@ -481,18 +502,17 @@ async function populateCategorySelect() {
     }
 }
 
-// Show alert message
+// Show alert message (SweetAlert2 toast if available)
 function showAlert(message, type = 'info') {
-    // Create alert element
+    if (window.Swal && Swal.fire) {
+        const icon = (type === 'danger') ? 'error' : (type === 'warning') ? 'warning' : (type === 'success') ? 'success' : 'info';
+        Swal.fire({ toast: true, position: 'top-end', icon, title: message, showConfirmButton: false, timer: 2200, timerProgressBar: true });
+        return;
+    }
     const alert = document.createElement('div');
     alert.className = `alert alert-${type} alert-dismissible fade show`;
     alert.role = 'alert';
-    alert.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    // Find or create alert container
+    alert.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
     let alertContainer = document.querySelector('.alert-container');
     if (!alertContainer) {
         alertContainer = document.createElement('div');
@@ -500,16 +520,17 @@ function showAlert(message, type = 'info') {
         alertContainer.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1050; max-width: 350px;';
         document.body.appendChild(alertContainer);
     }
-    
-    // Add alert to container
     alertContainer.appendChild(alert);
-    
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-        if (alert.parentNode) {
-            alert.remove();
-        }
-    }, 5000);
+    setTimeout(() => { if (alert.parentNode) alert.remove(); }, 5000);
+}
+
+// SweetAlert2 confirmation helper
+function confirmDialog({ title = 'Are you sure?', text = '', confirmText = 'Yes', cancelText = 'Cancel', icon = 'warning' } = {}) {
+    if (window.Swal && Swal.fire) {
+        return Swal.fire({ title, text, icon, showCancelButton: true, confirmButtonText: confirmText, cancelButtonText: cancelText, reverseButtons: true })
+            .then(result => !!result.isConfirmed);
+    }
+    return Promise.resolve(window.confirm(text || title));
 }
 
 // Utility function to handle form submissions
@@ -701,3 +722,350 @@ document.addEventListener('keydown', function(e) {
         });
     }
 });
+
+// ======================
+// GALLERY PAGE LOGIC
+// ======================
+
+// Validate image URL (only allow http/https)
+function isValidImageUrl(url) {
+    try {
+        const urlObj = new URL(url, window.location.origin);
+        return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+    } catch {
+        return false;
+    }
+}
+
+// Open sponsorship detail
+function openSponsorshipModal(sponsorshipId) {
+    window.location.href = `/sponsorship/${sponsorshipId}`;
+}
+
+// Open prompt modal for pixel gallery
+function openPromptModal(promptId, slug) {
+    const modal = document.getElementById('promptModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalContent = document.getElementById('modalContent');
+
+    if (!modal || !modalTitle || !modalContent) return;
+
+    fetch(`/prompts/${slug}`)
+        .then(response => response.json())
+        .then(data => {
+            modalTitle.textContent = data.title;
+
+            const contentDiv = document.createElement('div');
+
+            // Image
+            const imageDiv = document.createElement('div');
+            imageDiv.style.marginBottom = '1.5rem';
+            const img = document.createElement('img');
+            img.src = isValidImageUrl(data.image_url) ? data.image_url : '/static/images/placeholder.png';
+            img.alt = data.title;
+            img.style.width = '100%';
+            img.style.borderRadius = '8px';
+            img.style.border = '2px solid var(--pixel-purple)';
+            imageDiv.appendChild(img);
+            contentDiv.appendChild(imageDiv);
+
+            // Meta
+            const metaDiv = document.createElement('div');
+            metaDiv.style.marginBottom = '1rem';
+            const categorySpan = document.createElement('span');
+            categorySpan.style.padding = '0.4rem 0.8rem';
+            categorySpan.style.background = 'rgba(157, 78, 221, 0.3)';
+            categorySpan.style.border = '1px solid var(--pixel-cyan)';
+            categorySpan.style.borderRadius = '6px';
+            categorySpan.style.display = 'inline-block';
+            categorySpan.style.marginRight = '0.5rem';
+            categorySpan.textContent = data.category;
+
+            const creatorLink = document.createElement('a');
+            creatorLink.href = `/user/${encodeURIComponent(data.creator)}`;
+            creatorLink.style.color = 'var(--pixel-cyan)';
+            creatorLink.className = 'creator-link';
+            creatorLink.addEventListener('click', function(e) { e.stopPropagation(); });
+
+            const creatorImg = document.createElement('img');
+            creatorImg.src = data.creator_profile_pic || '/static/images/default-profile.svg';
+            creatorImg.alt = `${data.creator}'s profile`;
+            creatorImg.style.width = '28px';
+            creatorImg.style.height = '28px';
+            creatorImg.style.borderRadius = '50%';
+            creatorImg.style.objectFit = 'cover';
+            creatorImg.style.margin = '0 0.5rem 0 0';
+            creatorImg.style.verticalAlign = 'middle';
+            creatorImg.style.border = '2px solid rgba(255,255,255,0.08)';
+            creatorImg.addEventListener('click', function(e) { e.stopPropagation(); });
+
+            const nameNode = document.createElement('span');
+            nameNode.textContent = data.creator;
+            nameNode.className = 'creator-name';
+            nameNode.style.verticalAlign = 'middle';
+            creatorLink.appendChild(creatorImg);
+            creatorLink.appendChild(nameNode);
+
+            const creatorBox = document.createElement('div');
+            const createdByLabel = document.createElement('span');
+            createdByLabel.textContent = 'by';
+            createdByLabel.style.fontFamily = "'VT323', monospace";
+            createdByLabel.style.color = 'rgba(248,249,250,0.75)';
+            createdByLabel.style.fontSize = '0.9rem';
+            creatorBox.appendChild(createdByLabel);
+            creatorBox.appendChild(creatorLink);
+
+            metaDiv.appendChild(categorySpan);
+            metaDiv.appendChild(creatorBox);
+            contentDiv.appendChild(metaDiv);
+
+            // Description
+            const descDiv = document.createElement('div');
+            descDiv.style.marginBottom = '1rem';
+            const descHeader = document.createElement('h4');
+            descHeader.style.color = 'var(--pixel-gold)';
+            descHeader.style.fontFamily = "'Orbitron', sans-serif";
+            descHeader.style.marginBottom = '0.5rem';
+            descHeader.textContent = 'Description';
+            const descText = document.createElement('p');
+            descText.textContent = data.description;
+            descDiv.appendChild(descHeader);
+            descDiv.appendChild(descText);
+            contentDiv.appendChild(descDiv);
+
+            if (data.can_view_details) {
+                const promptSection = document.createElement('div');
+                promptSection.style.marginBottom = '1rem';
+                promptSection.innerHTML = `
+                    <h4 style="color: var(--pixel-gold); font-family: 'Orbitron', sans-serif; margin-bottom: 0.5rem;">Prompt</h4>
+                    <div style="background: rgba(11, 11, 16, 0.8); padding: 1rem; border-radius: 8px; border: 2px solid var(--pixel-purple);">
+                        <p id="modalPromptText" style="margin-bottom: 0;"></p>
+                        <button id="copyPromptBtn" class="pixel-btn pixel-btn-secondary modal-copy-btn" style="margin-top: 1rem;">Copy Prompt</button>
+                    </div>
+                `;
+                promptSection.querySelector('#modalPromptText').textContent = data.prompt_text;
+                contentDiv.appendChild(promptSection);
+
+                const saveBtn = document.createElement('button');
+                saveBtn.id = 'toggleSaveBtn';
+                saveBtn.className = 'pixel-btn' + (data.is_saved ? ' pixel-btn-primary' : '');
+                saveBtn.style.marginTop = '1rem';
+                saveBtn.textContent = data.is_saved ? 'Unsave' : 'Save Prompt';
+                saveBtn.dataset.promptId = data.id;
+                saveBtn.dataset.isSaved = data.is_saved;
+                contentDiv.appendChild(saveBtn);
+
+                saveBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const promptIdLocal = saveBtn.dataset.promptId;
+                    const isSaved = saveBtn.dataset.isSaved === 'true';
+                    const endpoint = isSaved ? `/unsave_prompt/${promptIdLocal}` : `/save_prompt/${promptIdLocal}`;
+                    fetch(endpoint, { method: 'POST', headers: {'Content-Type': 'application/json'} })
+                        .then(r => r.json())
+                        .then(res => {
+                            if (res.success) {
+                                if (isSaved) {
+                                    saveBtn.textContent = 'Save Prompt';
+                                    saveBtn.classList.remove('pixel-btn-primary');
+                                    saveBtn.dataset.isSaved = 'false';
+                                } else {
+                                    saveBtn.textContent = 'Unsave';
+                                    saveBtn.classList.add('pixel-btn-primary');
+                                    saveBtn.dataset.isSaved = 'true';
+                                }
+                            }
+                        });
+                });
+            } else {
+                contentDiv.innerHTML += `
+                    <div style="background: rgba(157, 78, 221, 0.1); border: 2px solid var(--pixel-purple); border-radius: 8px; padding: 2rem; text-align: center; margin-top: 1rem;">
+                        <p style="font-size: 1.2rem; margin-bottom: 1rem;">Unlock full prompt details</p>
+                        ${data.can_start_trial ? 
+                            '<a href="/subscription" class="pixel-btn pixel-btn-primary">Start Free Trial</a>' : 
+                            '<a href="/subscription" class="pixel-btn pixel-btn-primary">Upgrade Now</a>'
+                        }
+                    </div>
+                `;
+            }
+
+            // Edit button
+            if (data.can_edit) {
+                const editBtn = document.createElement('button');
+                editBtn.className = 'pixel-btn pixel-btn-primary';
+                editBtn.style.marginTop = '1rem';
+                editBtn.style.marginLeft = '0.5rem';
+                editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
+                editBtn.addEventListener('click', function() {
+                    window.location.href = `/prompts/${data.slug}/edit`;
+                });
+                contentDiv.appendChild(editBtn);
+            }
+
+            modalContent.innerHTML = '';
+            modalContent.appendChild(contentDiv);
+
+            const copyBtn = document.getElementById('copyPromptBtn');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const text = document.getElementById('modalPromptText').textContent;
+                    navigator.clipboard.writeText(text).then(() => {
+                        copyBtn.textContent = 'Copied!';
+                        setTimeout(() => { copyBtn.textContent = 'Copy Prompt'; }, 2000);
+                    });
+                });
+            }
+
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+// Close modal used in pixel gallery
+function closeModal(event) {
+    if (!event || event.target.id === 'promptModal') {
+        const el = document.getElementById('promptModal');
+        if (el) el.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// ESC key to close pixel modal
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeModal();
+    }
+});
+
+// ======================
+// NAVBAR DROPDOWN LOGIC
+// ======================
+function toggleDropdown(dropdownId) {
+    const dropdown = document.getElementById(dropdownId);
+    if (dropdown) dropdown.classList.toggle('show');
+}
+
+window.addEventListener('click', function(event) {
+    if (!event.target.matches('.nav-dropdown-btn') && !event.target.closest('.nav-dropdown-btn')) {
+        const dropdowns = document.getElementsByClassName('nav-dropdown-content');
+        for (let i = 0; i < dropdowns.length; i++) {
+            const openDropdown = dropdowns[i];
+            if (openDropdown.classList.contains('show')) {
+                openDropdown.classList.remove('show');
+            }
+        }
+    }
+});
+
+// ======================
+// PROFILE PAGE LOGIC
+// ======================
+document.addEventListener('DOMContentLoaded', function() {
+    const profileInput = document.getElementById('profile_pic');
+    const profileImage = document.getElementById('profileImage');
+    if (profileInput && profileImage) {
+        profileInput.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    profileImage.src = ev.target.result;
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+    }
+
+    // Only apply username validation on profile page (guarded by presence of profileImage)
+    if (profileImage) {
+        const profileForm = profileImage.closest('form') || document.querySelector('form');
+        if (profileForm) {
+            profileForm.addEventListener('submit', function(e) {
+                const usernameEl = document.getElementById('username');
+                if (usernameEl) {
+                    const username = usernameEl.value;
+                    const pattern = /^[A-Za-z0-9_]+$/;
+                    if (!pattern.test(username)) {
+                        e.preventDefault();
+                        alert('Username can only contain letters, numbers, and underscores!');
+                    }
+                }
+            });
+        }
+    }
+
+    if (window.innerWidth <= 768) {
+        const grids = document.querySelectorAll('[style*="grid-template-columns: 1fr 1fr"]');
+        grids.forEach(grid => { grid.style.gridTemplateColumns = '1fr'; });
+    }
+});
+
+// ======================
+// UPLOAD (ADD PROMPT) PAGE LOGIC
+// ======================
+document.addEventListener('DOMContentLoaded', function() {
+    const urlRadio = document.getElementById('image_url_radio');
+    const uploadRadio = document.getElementById('image_upload_radio');
+    const urlInput = document.getElementById('url_input');
+    const fileInput = document.getElementById('file_input');
+    const imageUrlElement = document.getElementById('image_url');
+    const imageFileElement = document.getElementById('image_file');
+
+    function toggleImageInput() {
+        if (!urlInput || !fileInput || !imageUrlElement || !imageFileElement) return;
+        if (urlRadio && urlRadio.checked) {
+            urlInput.style.display = 'block';
+            fileInput.style.display = 'none';
+            imageUrlElement.required = true;
+            imageFileElement.required = false;
+        } else {
+            urlInput.style.display = 'none';
+            fileInput.style.display = 'block';
+            imageUrlElement.required = false;
+            imageFileElement.required = true;
+        }
+    }
+
+    if (urlRadio && uploadRadio) {
+        urlRadio.addEventListener('change', toggleImageInput);
+        uploadRadio.addEventListener('change', toggleImageInput);
+        toggleImageInput();
+    }
+
+    const imageFile = document.getElementById('image_file');
+    if (imageFile) {
+        imageFile.addEventListener('change', function(e) {
+            const preview = document.getElementById('image_preview');
+            const file = e.target.files && e.target.files[0];
+            if (!file || !preview) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                e.target.value = '';
+                preview.innerHTML = '';
+                return;
+            }
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Please select a valid image file (JPEG, PNG, GIF, WebP)');
+                e.target.value = '';
+                preview.innerHTML = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                preview.innerHTML = `
+                    <div style="border: 2px solid var(--pixel-cyan); border-radius: 8px; padding: 1rem; background: rgba(0, 255, 255, 0.1);">
+                        <img src="${ev.target.result}" alt="Preview" style="max-width: 100%; max-height: 300px; border-radius: 4px; display: block; margin: 0 auto;">
+                        <div style="text-align: center; margin-top: 0.5rem; font-family: 'VT323', monospace; font-size: 1rem; color: rgba(248, 249, 250, 0.7);">
+                            Preview: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)
+                        </div>
+                    </div>`;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+});
+
+
