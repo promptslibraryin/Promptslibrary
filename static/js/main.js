@@ -671,12 +671,23 @@ function sharePromptText(promptId) {
             } else {
                 // Fallback: copy to clipboard
                 navigator.clipboard.writeText(shareText)
-                    .then(() => alert('Prompt details copied to clipboard!'));
+                    .then(() => Swal.fire({
+                        icon: 'success',
+                        title: 'Copied!',
+                        text: 'Prompt details copied to clipboard!',
+                        confirmButtonColor: '#7a5cff',
+                        timer: 2000
+                    }));
             }
         })
         .catch(err => {
             console.error('Error fetching prompt for share:', err);
-            alert('Unable to share prompt.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Share Failed',
+                text: 'Unable to share prompt.',
+                confirmButtonColor: '#ff4f4f'
+            });
         });
 }
 
@@ -987,7 +998,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     const pattern = /^[A-Za-z0-9_]+$/;
                     if (!pattern.test(username)) {
                         e.preventDefault();
-                        alert('Username can only contain letters, numbers, and underscores!');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Invalid Username',
+                            text: 'Username can only contain letters, numbers, and underscores!',
+                            confirmButtonColor: '#ff4f4f'
+                        });
                     }
                 }
             });
@@ -1040,14 +1056,24 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!file || !preview) return;
 
             if (file.size > 5 * 1024 * 1024) {
-                alert('File size must be less than 5MB');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'File Too Large',
+                    text: 'File size must be less than 5MB',
+                    confirmButtonColor: '#ff4f4f'
+                });
                 e.target.value = '';
                 preview.innerHTML = '';
                 return;
             }
             const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
             if (!allowedTypes.includes(file.type)) {
-                alert('Please select a valid image file (JPEG, PNG, GIF, WebP)');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid File Type',
+                    text: 'Please select a valid image file (JPEG, PNG, GIF, WebP)',
+                    confirmButtonColor: '#ff4f4f'
+                });
                 e.target.value = '';
                 preview.innerHTML = '';
                 return;

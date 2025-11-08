@@ -197,7 +197,12 @@
         if (file) {
             // Validate file size (max 5MB)
             if (file.size > 5 * 1024 * 1024) {
-                alert('File size must be less than 5MB');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'File Too Large',
+                    text: 'File size must be less than 5MB',
+                    confirmButtonColor: '#ff4f4f'
+                });
                 input.value = '';
                 preview.innerHTML = '';
                 return;
@@ -206,7 +211,12 @@
             // Validate file type
             const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
             if (!allowedTypes.includes(file.type)) {
-                alert('Please select a valid image file (JPEG, PNG, GIF, WebP)');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid File Type',
+                    text: 'Please select a valid image file (JPEG, PNG, GIF, WebP)',
+                    confirmButtonColor: '#ff4f4f'
+                });
                 input.value = '';
                 preview.innerHTML = '';
                 return;
@@ -249,15 +259,31 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert(data.message || 'Prompt updated successfully!');
-                window.location.href = '/my_prompts';
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Updated!',
+                    text: data.message || 'Prompt updated successfully!',
+                    confirmButtonColor: '#7a5cff'
+                }).then(() => {
+                    window.location.href = '/my_prompts';
+                });
             } else {
-                alert(data.message || 'Error updating prompt');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Update Failed',
+                    text: data.message || 'Error updating prompt',
+                    confirmButtonColor: '#ff4f4f'
+                });
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error updating prompt');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error updating prompt',
+                confirmButtonColor: '#ff4f4f'
+            });
         });
     });
 </script>

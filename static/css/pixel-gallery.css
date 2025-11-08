@@ -93,8 +93,19 @@ body.pixel-theme::before {
 
 /* Desktop Navigation */
 .pixel-nav {
-    display: none;
+    display: flex;
     gap: 2rem;
+    align-items: center;
+}
+
+/* Hide nav links on mobile, but keep dropdown visible */
+@media (max-width: 767px) {
+    .pixel-nav > a {
+        display: none;
+    }
+    .pixel-nav {
+        gap: 0;
+    }
 }
 
 .pixel-nav a {
@@ -130,6 +141,10 @@ body.pixel-theme::before {
     .pixel-nav {
         display: flex;
         align-items: center;
+        gap: 2rem;
+    }
+    .pixel-nav > a {
+        display: inline-block;
     }
 }
 

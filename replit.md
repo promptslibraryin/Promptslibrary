@@ -10,13 +10,22 @@ Prompts-Library is India's first AI-powered social platform where creators share
 - **Port**: 5000 (configured for Replit webview)
 
 ## Recent Changes
-### November 1, 2025 - Initial Replit Setup
-- Migrated from MySQL to PostgreSQL for Replit compatibility
-- Updated database configuration to use Replit's PostgreSQL instance
-- Installed all Python dependencies (Flask, SQLAlchemy, psycopg2-binary, etc.)
-- Configured workflow for Flask development server
-- Set up deployment configuration with Gunicorn
-- Added comprehensive .gitignore for Python projects
+### November 6, 2025 - PM Coins v1.0 Launch & Mobile Improvements
+- **PM Coins System**: Implemented virtual currency system with buy coins, become creator, and circle membership features
+- **Circle Members Display**: Added Instagram-style followers display on creator profiles showing member avatars
+- **Mobile Navigation Fix**: Fixed three-dot menu visibility on mobile devices
+- **Admin Dashboard**: Created comprehensive admin panel with PM Coins statistics and transaction tracking
+- **Security Fixes**: Moved Razorpay credentials to environment variables
+- **Exclusive Content Access**: Implemented proper access control for exclusive prompts (creator/circle-only)
+- Application running successfully with all v1.0 features operational
+
+### November 6, 2025 - GitHub Import and Replit Setup
+- Successfully imported project from GitHub
+- Installed Python 3.11 and all dependencies from requirements.txt
+- Installed psycopg2-binary for PostgreSQL database connectivity
+- Configured Flask development workflow on port 5000 with host 0.0.0.0
+- Set up deployment configuration with Gunicorn for production
+- Verified database initialization and application functionality
 
 ## Project Architecture
 

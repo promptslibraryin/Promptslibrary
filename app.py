@@ -27,9 +27,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for
 
 # if not db_url:
 #     db_url = "sqlite:///prompt_gallery.db"
-
 db_url="mysql+pymysql://hardik:hardik%40005@localhost/prompt_gallery?charset=utf8mb4"
-
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
@@ -46,13 +44,39 @@ def load_user(user_id):
     from models import User
     return User.query.get(int(user_id))
 
+@app.before_request
+def check_login_and_otp():
+    from flask import request, redirect, url_for, session
+    from flask_login import current_user
+    
+    open_routes = [
+        '/', '/index', '/login', '/register', '/forgot-password', 
+        '/otp-verify', '/reset-password', '/gallery',
+        '/static', '/robots.txt', '/sitemap.xml',
+        '/privacy-policy', '/terms-conditions', '/contact-us',
+        '/shipping-delivery', '/cancellation-refund', '/view_sponsorship'
+    ]
+    
+    if any(request.path.startswith(route) for route in open_routes):
+        return None
+    
+    if not current_user.is_authenticated:
+        session['next_url'] = request.url
+        return redirect(url_for('login'))
+    
+    if not current_user.is_otp_verified:
+        session['next_url'] = request.url
+        return redirect(url_for('otp_verify'))
+    
+    return None
+
 with app.app_context():
     import models  # import models so tables are registered
     db.create_all()
     models.init_sample_data()  # insert sample data
     import routes  # import routes last (after db + models setup)
+    import notification_withdraw_routes  # import notification and withdraw routes
 
-
-
+ 
 # if __name__ == '__main__':
 #     app.run(host='0.0.0.0', port=5000, debug=True)

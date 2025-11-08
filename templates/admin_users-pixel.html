@@ -1,0 +1,394 @@
+{% extends "base-pixel.html" %}
+
+{% block title %}User Management - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+.admin-users-page {
+    padding: 2rem 0;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(122, 92, 255, 0.3);
+}
+
+.admin-header h1 {
+    font-family: 'VT323', monospace;
+    font-size: 2.5rem;
+    color: var(--pixel-cyan);
+    margin: 0;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, rgba(122, 92, 255, 0.1) 0%, rgba(157, 78, 221, 0.05) 100%);
+    border: 2px solid var(--pixel-purple);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--pixel-cyan);
+    box-shadow: 0 10px 30px rgba(122, 92, 255, 0.3);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    display: inline-block;
+}
+
+.stat-icon.users { color: #00d4ff; }
+.stat-icon.subscribed { color: #28a745; }
+.stat-icon.recent { color: #ffc107; }
+
+.stat-label {
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    color: rgba(248, 249, 250, 0.7);
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-family: 'VT323', monospace;
+    font-size: 2.5rem;
+    color: var(--pixel-white);
+    font-weight: bold;
+}
+
+.stat-subtext {
+    font-family: 'VT323', monospace;
+    font-size: 0.95rem;
+    color: rgba(248, 249, 250, 0.5);
+    margin-top: 0.5rem;
+}
+
+.admin-section {
+    background: rgba(122, 92, 255, 0.05);
+    border: 2px solid rgba(122, 92, 255, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-title {
+    font-family: 'VT323', monospace;
+    font-size: 1.8rem;
+    color: var(--pixel-purple);
+    margin: 0;
+}
+
+.search-box {
+    display: flex;
+    gap: 0.5rem;
+    flex: 1;
+    max-width: 500px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    background: rgba(122, 92, 255, 0.1);
+    border: 2px solid var(--pixel-purple);
+    border-radius: 8px;
+    color: var(--pixel-white);
+    outline: none;
+}
+
+.search-input:focus {
+    border-color: var(--pixel-cyan);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.pixel-btn {
+    padding: 0.75rem 1.5rem;
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    background: var(--pixel-purple);
+    color: white;
+    border: 2px solid var(--pixel-purple);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pixel-btn:hover {
+    background: transparent;
+    color: var(--pixel-purple);
+    transform: translateY(-2px);
+}
+
+.pixel-btn-secondary {
+    background: rgba(122, 92, 255, 0.2);
+    color: var(--pixel-cyan);
+}
+
+.pixel-btn-secondary:hover {
+    background: var(--pixel-cyan);
+    color: var(--pixel-dark);
+    border-color: var(--pixel-cyan);
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 1rem;
+}
+
+.user-table thead {
+    background: rgba(122, 92, 255, 0.1);
+}
+
+.user-table th {
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem;
+    color: var(--pixel-cyan);
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 2px solid rgba(122, 92, 255, 0.3);
+}
+
+.user-table td {
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    color: var(--pixel-white);
+    padding: 1rem;
+    border-bottom: 1px solid rgba(122, 92, 255, 0.1);
+}
+
+.user-table tr:hover {
+    background: rgba(0, 255, 255, 0.05);
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--pixel-purple);
+    margin-right: 0.75rem;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+.badge-pixel {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    font-family: 'VT323', monospace;
+    font-size: 0.95rem;
+    border-radius: 6px;
+    border: 1px solid;
+    margin-left: 0.5rem;
+}
+
+.badge-danger { background: rgba(220, 53, 69, 0.2); color: #dc3545; border-color: #dc3545; }
+.badge-success { background: rgba(40, 167, 69, 0.2); color: #28a745; border-color: #28a745; }
+.badge-secondary { background: rgba(108, 117, 125, 0.2); color: #6c757d; border-color: #6c757d; }
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+}
+
+.pagination a,
+.pagination span {
+    padding: 0.5rem 1rem;
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    background: rgba(122, 92, 255, 0.1);
+    color: var(--pixel-cyan);
+    border: 2px solid var(--pixel-purple);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.pagination a:hover {
+    background: var(--pixel-purple);
+    color: white;
+}
+
+.pagination .active {
+    background: var(--pixel-purple);
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .stat-grid {
+        grid-template-columns: 1fr;
+    }
+    .section-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    .search-box {
+        max-width: 100%;
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pixel-container admin-users-page">
+    <div class="admin-header">
+        <h1><i class="fas fa-users"></i> User Management</h1>
+        <a href="{{ url_for('admin_dashboard') }}" class="pixel-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-icon users"><i class="fas fa-users"></i></div>
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value">{{ total_users }}</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon subscribed"><i class="fas fa-star"></i></div>
+            <div class="stat-label">Subscribed Users</div>
+            <div class="stat-value">{{ subscribed_users }}</div>
+            <div class="stat-subtext">{{ (subscribed_users / total_users * 100)|round(1) if total_users > 0 else 0 }}% of total</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon recent"><i class="fas fa-chart-line"></i></div>
+            <div class="stat-label">Recent Signups</div>
+            <div class="stat-value">{{ recent_signups }}</div>
+            <div class="stat-subtext">Last 7 days</div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="admin-section">
+        <div class="section-header">
+            <h3 class="section-title"><i class="fas fa-list"></i> All Users</h3>
+            <form method="GET" class="search-box">
+                <input type="text" name="search" class="search-input" placeholder="Search by name, username, or email..." value="{{ search_query or '' }}">
+                <button type="submit" class="pixel-btn"><i class="fas fa-search"></i></button>
+                {% if search_query %}
+                <a href="{{ url_for('admin_users') }}" class="pixel-btn pixel-btn-secondary"><i class="fas fa-xmark"></i></a>
+                {% endif %}
+            </form>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Joined</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users.items %}
+                    <tr>
+                        <td>
+                            <div class="user-info">
+                                <img src="{{ user.profile_pic or url_for('static', filename='images/default-profile.svg') }}" 
+                                     alt="{{ user.username }}" 
+                                     class="user-avatar">
+                                <div>
+                                    <strong>{{ user.username }}</strong>
+                                    {% if user.is_admin %}
+                                        <span class="badge-pixel badge-danger">Admin</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td style="color: rgba(248, 249, 250, 0.7);">{{ user.email }}</td>
+                        <td style="color: rgba(248, 249, 250, 0.6);">{{ user.created_at.strftime('%b %d, %Y') }}</td>
+                        <td>
+                            {% if user.is_subscribed %}
+                                <span class="badge-pixel badge-success">
+                                    <i class="fas fa-star"></i> Premium
+                                </span>
+                                {% if user.subscription_expiry %}
+                                <div style="font-size: 0.9rem; color: rgba(248, 249, 250, 0.5); margin-top: 0.25rem;">
+                                    Exp: {{ user.subscription_expiry.strftime('%m/%d/%Y') }}
+                                </div>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge-pixel badge-secondary">Free</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('public_profile', username=user.username) }}" 
+                               class="pixel-btn pixel-btn-secondary" 
+                               style="padding: 0.5rem 1rem; font-size: 1rem;"
+                               target="_blank">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if users.pages > 1 %}
+        <div class="pagination">
+            {% if users.has_prev %}
+                <a href="{{ url_for('admin_users', page=users.prev_num, search=search_query) }}">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+            {% endif %}
+
+            {% for page_num in range(1, users.pages + 1) %}
+                {% if page_num == users.page %}
+                    <span class="active">{{ page_num }}</span>
+                {% else %}
+                    <a href="{{ url_for('admin_users', page=page_num, search=search_query) }}">{{ page_num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if users.has_next %}
+                <a href="{{ url_for('admin_users', page=users.next_num, search=search_query) }}">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

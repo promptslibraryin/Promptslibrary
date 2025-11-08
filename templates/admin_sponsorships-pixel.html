@@ -1,0 +1,383 @@
+{% extends "base-pixel.html" %}
+
+{% block title %}Manage Sponsorships - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+.admin-sponsorships-page {
+    padding: 2rem 0;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(122, 92, 255, 0.3);
+}
+
+.admin-header h1 {
+    font-family: 'VT323', monospace;
+    font-size: 2.5rem;
+    color: var(--pixel-cyan);
+    margin: 0;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.pixel-btn {
+    padding: 0.75rem 1.5rem;
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    background: var(--pixel-purple);
+    color: white;
+    border: 2px solid var(--pixel-purple);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pixel-btn:hover {
+    background: transparent;
+    color: var(--pixel-purple);
+    transform: translateY(-2px);
+}
+
+.pixel-btn-success {
+    background: #28a745;
+    border-color: #28a745;
+}
+
+.pixel-btn-success:hover {
+    background: transparent;
+    color: #28a745;
+}
+
+.admin-section {
+    background: rgba(122, 92, 255, 0.05);
+    border: 2px solid rgba(122, 92, 255, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.sponsorship-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.sponsorship-card {
+    background: linear-gradient(135deg, rgba(122, 92, 255, 0.1) 0%, rgba(157, 78, 221, 0.05) 100%);
+    border: 2px solid var(--pixel-purple);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.sponsorship-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--pixel-cyan);
+    box-shadow: 0 10px 30px rgba(122, 92, 255, 0.3);
+}
+
+.sponsorship-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid rgba(122, 92, 255, 0.3);
+    margin-bottom: 1rem;
+}
+
+.sponsorship-title {
+    font-family: 'VT323', monospace;
+    font-size: 1.5rem;
+    color: var(--pixel-cyan);
+    margin-bottom: 0.5rem;
+}
+
+.sponsorship-client {
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    color: rgba(248, 249, 250, 0.7);
+    margin-bottom: 0.5rem;
+}
+
+.sponsorship-description {
+    font-family: 'VT323', monospace;
+    font-size: 1rem;
+    color: rgba(248, 249, 250, 0.6);
+    margin-bottom: 1rem;
+    line-height: 1.4;
+}
+
+.sponsorship-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(122, 92, 255, 0.2);
+}
+
+.badge-pixel {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    font-family: 'VT323', monospace;
+    font-size: 0.95rem;
+    border-radius: 6px;
+    border: 1px solid;
+}
+
+.badge-success { background: rgba(40, 167, 69, 0.2); color: #28a745; border-color: #28a745; }
+.badge-secondary { background: rgba(108, 117, 125, 0.2); color: #6c757d; border-color: #6c757d; }
+
+.sponsorship-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 0.5rem;
+    font-family: 'VT323', monospace;
+    font-size: 1rem;
+    background: rgba(122, 92, 255, 0.1);
+    color: var(--pixel-cyan);
+    border: 2px solid var(--pixel-purple);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.action-btn:hover {
+    background: var(--pixel-purple);
+    color: white;
+}
+
+.action-btn.danger {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.action-btn.danger:hover {
+    background: #dc3545;
+    color: white;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--pixel-purple);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.empty-state h3 {
+    font-family: 'VT323', monospace;
+    font-size: 2rem;
+    color: var(--pixel-cyan);
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem;
+    color: rgba(248, 249, 250, 0.7);
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .sponsorship-grid {
+        grid-template-columns: 1fr;
+    }
+    .admin-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pixel-container admin-sponsorships-page">
+    <div class="admin-header">
+        <h1><i class="fas fa-ad"></i> Manage Sponsorships</h1>
+        <div style="display: flex; gap: 1rem;">
+            <a href="{{ url_for('admin_dashboard') }}" class="pixel-btn">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+            <a href="{{ url_for('add_sponsorship') }}" class="pixel-btn pixel-btn-success">
+                <i class="fas fa-plus"></i> Add New
+            </a>
+        </div>
+    </div>
+
+    {% if sponsorships %}
+        <div class="admin-section">
+            <div class="sponsorship-grid">
+                {% for sponsorship in sponsorships %}
+                <div class="sponsorship-card">
+                    <img src="{{ sponsorship.image_url }}" alt="{{ sponsorship.title }}" class="sponsorship-image">
+                    
+                    <h3 class="sponsorship-title">{{ sponsorship.title }}</h3>
+                    <div class="sponsorship-client">
+                        <i class="fas fa-building"></i> {{ sponsorship.client_name }}
+                    </div>
+                    <p class="sponsorship-description">{{ sponsorship.description[:100] }}...</p>
+                    
+                    <div class="sponsorship-meta">
+                        <div>
+                            {% if sponsorship.is_active %}
+                                <span class="badge-pixel badge-success"><i class="fas fa-check-circle"></i> Active</span>
+                            {% else %}
+                                <span class="badge-pixel badge-secondary"><i class="fas fa-pause-circle"></i> Inactive</span>
+                            {% endif %}
+                        </div>
+                        <div style="font-family: 'VT323', monospace; font-size: 0.95rem; color: rgba(248, 249, 250, 0.5);">
+                            {% if sponsorship.expires_at %}
+                                <i class="fas fa-calendar"></i> Exp: {{ sponsorship.expires_at.strftime('%m/%d/%Y') }}
+                            {% else %}
+                                <i class="fas fa-infinity"></i> No expiry
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="sponsorship-actions">
+                        <button class="action-btn" onclick="toggleSponsorship({{ sponsorship.id }})">
+                            {% if sponsorship.is_active %}
+                                <i class="fas fa-pause"></i> Deactivate
+                            {% else %}
+                                <i class="fas fa-play"></i> Activate
+                            {% endif %}
+                        </button>
+                        <button class="action-btn danger" onclick="deleteSponsorship({{ sponsorship.id }})">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <div class="admin-section">
+            <div class="empty-state">
+                <i class="fas fa-ad"></i>
+                <h3>No Sponsorships Found</h3>
+                <p>Create your first sponsorship to start promoting client content</p>
+                <a href="{{ url_for('add_sponsorship') }}" class="pixel-btn pixel-btn-success">
+                    <i class="fas fa-plus"></i> Add First Sponsorship
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function toggleSponsorship(sponsorshipId) {
+    try {
+        const response = await fetch(`/admin/toggle_sponsorship/${sponsorshipId}`, {
+            method: 'POST'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Updated!',
+                text: result.message,
+                confirmButtonColor: '#7a5cff',
+                timer: 2000
+            }).then(() => {
+                window.location.reload();
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: result.message || 'Failed to toggle sponsorship',
+                confirmButtonColor: '#ff4f4f'
+            });
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred while toggling the sponsorship',
+            confirmButtonColor: '#ff4f4f'
+        });
+    }
+}
+
+async function deleteSponsorship(sponsorshipId) {
+    const result = await Swal.fire({
+        title: 'Delete Sponsorship?',
+        text: 'This action cannot be undone!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#888',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+    });
+    
+    if (!result.isConfirmed) return;
+    
+    try {
+        const response = await fetch(`/admin/delete_sponsorship/${sponsorshipId}`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Deleted!',
+                text: data.message,
+                confirmButtonColor: '#7a5cff',
+                timer: 2000
+            }).then(() => {
+                window.location.reload();
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message || 'Failed to delete sponsorship',
+                confirmButtonColor: '#ff4f4f'
+            });
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred while deleting the sponsorship',
+            confirmButtonColor: '#ff4f4f'
+        });
+    }
+}
+</script>
+{% endblock %}

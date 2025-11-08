@@ -8,14 +8,16 @@ from werkzeug.utils import secure_filename
 from app import app
 import razorpay
 from extensions import db
-from models import User, Category, Prompt, SavedPrompt, Sponsorship
+from models import User, Category, Prompt, SavedPrompt, Sponsorship, CoinTransaction, Circle
 import uuid
 
 # SMTP config (use env vars in production)
 SMTP_SENDER_EMAIL = os.environ.get('SMTP_SENDER_EMAIL', 'promptslibrary.in@gmail.com')
 SMTP_SENDER_PASSWORD = os.environ.get('SMTP_SENDER_PASSWORD', 'yyvjblqqvwwpbfod')
 
-razorpay_client = razorpay.Client(auth=("rzp_live_RMas2O1baWS96w", "pWyiHH9vjXOJmHN8EgPiwPAy"))
+RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'rzp_live_RMas2O1baWS96w')
+RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'pWyiHH9vjXOJmHN8EgPiwPAy')
+razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 app.permanent_session_lifetime = timedelta(days=7) 
 
 @app.before_request
@@ -87,26 +89,50 @@ def category_page(slug):
 def prompt_detail_by_slug(slug):
     prompt = Prompt.query.filter_by(slug=slug).first_or_404()
     is_saved = False
+    in_circle = False
+    can_view_prompt = False
+    
     if current_user.is_authenticated:
         is_saved = SavedPrompt.query.filter_by(user_id=current_user.id, prompt_id=prompt.id).first() is not None
-    return jsonify({
+        in_circle = Circle.query.filter_by(user_id=current_user.id, creator_id=prompt.user_id).first() is not None
+        
+        if prompt.access_level == 'exclusive':
+            is_creator = current_user.id == prompt.user_id
+            can_view_prompt = is_creator or in_circle
+        else:
+            can_view_prompt = True
+    else:
+        can_view_prompt = prompt.access_level == 'basic'
+    
+    response_data = {
         'id': prompt.id,
         'slug': prompt.slug,
         'title': prompt.title,
         'description': prompt.description,
-        'prompt_text': prompt.prompt_text,
         'image_url': prompt.image_url,
         'category': prompt.category.name,
         'category_slug': prompt.category.slug,
         'creator': prompt.creator.username,
+        'creator_id': prompt.creator.id,
+        'creator_role': prompt.creator.user_role,
         'created_at': prompt.created_at.strftime('%B %d, %Y'),
         'creator_profile_pic': prompt.creator.profile_pic,
         'creator_instagram': prompt.creator.instagram_id,
         'is_saved': is_saved,
+        'in_circle': in_circle,
+        'access_level': prompt.access_level,
+        'can_view_prompt': can_view_prompt,
         'can_edit': current_user.is_authenticated and prompt.user_id == current_user.id,
         'can_view_details': current_user.is_authenticated and (current_user.is_subscribed or (current_user.subscription_expiry and current_user.subscription_expiry > datetime.utcnow())),
         'can_start_trial': current_user.is_authenticated and (not current_user.is_subscribed)
-    })
+    }
+    
+    if can_view_prompt or prompt.access_level == 'basic':
+        response_data['prompt_text'] = prompt.prompt_text
+    else:
+        response_data['prompt_text'] = 'Join this creator\'s circle to access this exclusive prompt! (50 coins)'
+    
+    return jsonify(response_data)
 
 
  
@@ -438,13 +464,18 @@ def add_prompt():
             flash('Please provide an image URL or upload an image file', 'error')
             return render_template('add_prompt-pixel.html', categories=categories)
         
+        access_level = request.form.get('access_level', 'basic')
+        if access_level == 'exclusive' and current_user.user_role not in ['creator', 'admin']:
+            access_level = 'basic'
+        
         prompt = Prompt(
             title=title,
             description=description,
             prompt_text=prompt_text,
             image_url=image_url,
             user_id=current_user.id,
-            category_id=category_id
+            category_id=category_id,
+            access_level=access_level
         )
         
         db.session.add(prompt)
@@ -505,11 +536,16 @@ def edit_prompt_by_slug(slug):
         elif request.form.get('image_url'):
             image_url = request.form.get('image_url')
         
+        access_level = request.form.get('access_level', prompt.access_level)
+        if access_level == 'exclusive' and current_user.user_role not in ['creator', 'admin']:
+            access_level = 'basic'
+        
         prompt.title = request.form['title']
         prompt.description = request.form['description']
         prompt.prompt_text = request.form['prompt_text']
         prompt.image_url = image_url
         prompt.category_id = request.form['category_id']
+        prompt.access_level = access_level
         
         db.session.commit()
         
@@ -544,11 +580,16 @@ def edit_prompt(prompt_id):
                 
             image_url = f'/static/uploads/prompts/{unique_filename}'
 
+    access_level = request.form.get('access_level', prompt.access_level)
+    if access_level == 'exclusive' and current_user.user_role not in ['creator', 'admin']:
+        access_level = 'basic'
+    
     prompt.title = request.form['title']
     prompt.description = request.form['description']
     prompt.prompt_text = request.form['prompt_text']
     prompt.image_url = image_url if file and file.filename else request.form['image_url']
     prompt.category_id = request.form['category_id']
+    prompt.access_level = access_level
     
     db.session.commit()
     
@@ -636,7 +677,7 @@ def payment():
                                 amount=amount, 
                                 duration=duration,
                                 order_id=order['id'],
-                                razorpay_key="rzp_live_RMas2O1baWS96w")
+                                razorpay_key=RAZORPAY_KEY_ID)
     return redirect(url_for('subscription'))
 
 
@@ -658,6 +699,201 @@ def process_payment():
         flash('Payment failed. Please try again.', 'error')
     
     return redirect(url_for('index'))
+
+
+@app.route('/buy-coins')
+@login_required
+def buy_coins():
+    return render_template('buy-coins-pixel.html')
+
+
+@app.route('/create-coin-order', methods=['POST'])
+@login_required
+def create_coin_order():
+    data = request.get_json()
+    coin_package = data.get('package')
+    
+    packages = {
+        '200': {'coins': 200, 'amount': 49},
+        '1000': {'coins': 1000, 'amount': 199}
+    }
+    
+    if coin_package not in packages:
+        return jsonify({'error': 'Invalid package'}), 400
+    
+    package_info = packages[coin_package]
+    
+    
+    try:
+        order = razorpay_client.order.create({
+            'amount': package_info['amount'] * 100,
+            'currency': 'INR',
+            'payment_capture': '1'
+        })
+        return jsonify({
+            'orderId': order['id'],
+            'amount': package_info['amount'],
+            'coins': package_info['coins'],
+            'razorpayKey': RAZORPAY_KEY_ID
+        })
+        
+    except Exception as e:
+        print('error',e)
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/verify-coin-payment', methods=['POST'])
+@login_required
+def verify_coin_payment():
+    data = request.get_json()
+    
+    try:
+        razorpay_client.utility.verify_payment_signature({
+            'razorpay_order_id': data['razorpay_order_id'],
+            'razorpay_payment_id': data['razorpay_payment_id'],
+            'razorpay_signature': data['razorpay_signature']
+        })
+        
+        coins = int(data['coins'])
+        amount = int(data['amount'])
+        
+        current_user.coins_balance += coins
+        current_user.total_earned_coins += coins
+        
+        transaction = CoinTransaction(
+            user_id=current_user.id,
+            transaction_type='add',
+            amount=coins,
+            description=f'Purchased {coins} PM Coins for \u20b9{amount}'
+        )
+        db.session.add(transaction)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': f'{coins} coins added successfully!', 'newBalance': current_user.coins_balance})
+    
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+
+@app.route('/become-creator', methods=['POST'])
+@login_required
+def become_creator():
+    CREATOR_COST = 400
+    
+    if current_user.user_role == 'creator' or current_user.user_role == 'admin':
+        return jsonify({'success': False, 'message': 'You are already a creator!'}), 400
+    
+    if current_user.coins_balance < CREATOR_COST:
+        return jsonify({'success': False, 'message': f'You need {CREATOR_COST} coins to become a creator. You have {current_user.coins_balance} coins.'}), 400
+    
+    current_user.coins_balance -= CREATOR_COST
+    current_user.total_spent_coins += CREATOR_COST
+    current_user.user_role = 'creator'
+    
+    transaction = CoinTransaction(
+        user_id=current_user.id,
+        transaction_type='spend',
+        amount=CREATOR_COST,
+        description='Upgraded to Creator status'
+    )
+    db.session.add(transaction)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': 'Congratulations! You are now a Creator!', 'newBalance': current_user.coins_balance})
+
+
+@app.route('/join-circle/<int:creator_id>', methods=['POST'])
+@login_required
+def join_circle(creator_id):
+    CIRCLE_COST = 50
+    
+    if creator_id == current_user.id:
+        return jsonify({'success': False, 'message': 'You cannot join your own circle!'}), 400
+    
+    creator = User.query.get_or_404(creator_id)
+    
+    if creator.user_role not in ['creator', 'admin']:
+        return jsonify({'success': False, 'message': 'This user is not a creator!'}), 400
+    
+    existing_circle = Circle.query.filter_by(user_id=current_user.id, creator_id=creator_id).first()
+    if existing_circle:
+        return jsonify({'success': False, 'message': 'You are already in this circle!'}), 400
+    
+    if current_user.coins_balance < CIRCLE_COST:
+        return jsonify({'success': False, 'message': f'You need {CIRCLE_COST} coins to join this circle. You have {current_user.coins_balance} coins.'}), 400
+    
+    current_user.coins_balance -= CIRCLE_COST
+    current_user.total_spent_coins += CIRCLE_COST
+    
+    creator.coins_balance += CIRCLE_COST
+    creator.total_earned_coins += CIRCLE_COST
+    
+    user_transaction = CoinTransaction(
+        user_id=current_user.id,
+        transaction_type='spend',
+        amount=CIRCLE_COST,
+        description=f'Joined {creator.username}\'s circle'
+    )
+    
+    creator_transaction = CoinTransaction(
+        user_id=creator.id,
+        transaction_type='add',
+        amount=CIRCLE_COST,
+        description=f'{current_user.username} joined your circle'
+    )
+    
+    new_circle = Circle(user_id=current_user.id, creator_id=creator_id)
+    
+    from models import Notification
+    user_notification = Notification(
+        user_id=current_user.id,
+        message=f'🎉 You joined {creator.username}\'s Circle! You now have access to their exclusive content.',
+        type='success'
+    )
+    
+    creator_notification = Notification(
+        user_id=creator.id,
+        message=f'🎉 {current_user.username} joined your Circle! You earned {CIRCLE_COST} PM Coins.',
+        type='success'
+    )
+    
+    db.session.add(user_transaction)
+    db.session.add(creator_transaction)
+    db.session.add(new_circle)
+    db.session.add(user_notification)
+    db.session.add(creator_notification)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': f'Successfully joined {creator.username}\'s circle!', 'newBalance': current_user.coins_balance})
+
+
+@app.route('/leave-circle/<int:creator_id>', methods=['POST'])
+@login_required
+def leave_circle(creator_id):
+    circle = Circle.query.filter_by(user_id=current_user.id, creator_id=creator_id).first()
+    
+    if not circle:
+        return jsonify({'success': False, 'message': 'You are not in this circle!'}), 400
+    
+    db.session.delete(circle)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': 'Successfully left the circle!'})
+
+
+@app.route('/check-circle/<int:creator_id>')
+@login_required
+def check_circle(creator_id):
+    is_member = Circle.query.filter_by(user_id=current_user.id, creator_id=creator_id).first() is not None
+    return jsonify({'isMember': is_member})
+
+
+@app.route('/my-circles')
+@login_required
+def my_circles():
+    circles = Circle.query.filter_by(user_id=current_user.id).all()
+    creators = [User.query.get(c.creator_id) for c in circles]
+    return render_template('my-circles-pixel.html', circles=circles, creators=creators)
 
 
 @app.route('/profile', methods=['GET', 'POST'])
@@ -782,7 +1018,71 @@ def start_trial():
     return redirect(url_for('index'))
 
 
-# Admin routes for sponsorship management
+# Admin routes
+@app.route('/admin')
+@app.route('/admin/dashboard')
+@login_required
+def admin_dashboard():
+    if not current_user.is_admin:
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('index'))
+    
+    total_users = User.query.count()
+    total_creators = User.query.filter_by(user_role='creator').count()
+    total_circles = Circle.query.count()
+    total_prompts = Prompt.query.count()
+    exclusive_prompts = Prompt.query.filter_by(access_level='exclusive').count()
+    
+    total_coins_circulation = db.session.query(db.func.sum(User.coins_balance)).scalar() or 0
+    total_coins_earned = db.session.query(db.func.sum(User.total_earned_coins)).scalar() or 0
+    
+    recent_transactions = CoinTransaction.query.order_by(CoinTransaction.created_at.desc()).limit(10).all()
+    recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
+    
+    stats = {
+        'total_users': total_users,
+        'total_creators': total_creators,
+        'total_circles': total_circles,
+        'total_prompts': total_prompts,
+        'exclusive_prompts': exclusive_prompts,
+        'total_coins_circulation': int(total_coins_circulation),
+        'total_coins_earned': int(total_coins_earned),
+        'recent_transactions': recent_transactions,
+        'recent_users': recent_users
+    }
+    
+    return render_template('admin_dashboard-pixel.html', stats=stats)
+
+
+@app.route('/admin/transactions')
+@login_required
+def admin_transactions():
+    if not current_user.is_admin:
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('index'))
+    
+    page = request.args.get('page', 1, type=int)
+    transaction_type = request.args.get('type', None)
+    
+    query = CoinTransaction.query
+    
+    if transaction_type:
+        query = query.filter_by(transaction_type=transaction_type)
+    
+    transactions = query.order_by(CoinTransaction.created_at.desc()).paginate(page=page, per_page=50)
+    
+    total_adds = CoinTransaction.query.filter_by(transaction_type='add').count()
+    total_spends = CoinTransaction.query.filter_by(transaction_type='spend').count()
+    total_earns = CoinTransaction.query.filter_by(transaction_type='earn').count()
+    
+    return render_template('admin_transactions-pixel.html',
+                         transactions=transactions,
+                         total_adds=total_adds,
+                         total_spends=total_spends,
+                         total_earns=total_earns,
+                         transaction_type=transaction_type)
+
+
 @app.route('/admin/sponsorships')
 @login_required
 def admin_sponsorships():
@@ -791,7 +1091,7 @@ def admin_sponsorships():
         return redirect(url_for('index'))
     
     sponsorships = Sponsorship.query.order_by(Sponsorship.created_at.desc()).all()
-    return render_template('admin_sponsorships.html', sponsorships=sponsorships)
+    return render_template('admin_sponsorships-pixel.html', sponsorships=sponsorships)
 
 
 @app.route('/admin/add_sponsorship', methods=['GET', 'POST'])
@@ -933,7 +1233,20 @@ def public_profile(username):
     user = User.query.filter_by(username=username).first_or_404()
     prompts = Prompt.query.filter_by(user_id=user.id).order_by(Prompt.created_at.desc()).limit(12).all()
     total_prompts = Prompt.query.filter_by(user_id=user.id).count()
-    return render_template('public_profile-pixel.html', user=user, prompts=prompts, total_prompts=total_prompts)
+    
+    circle_members = []
+    circle_count = 0
+    if user.user_role == 'creator':
+        circles = Circle.query.filter_by(creator_id=user.id).all()
+        circle_count = len(circles)
+        circle_members = [circle.member for circle in circles[:12]]
+    
+    return render_template('public_profile-pixel.html', 
+                         user=user, 
+                         prompts=prompts, 
+                         total_prompts=total_prompts,
+                         circle_members=circle_members,
+                         circle_count=circle_count)
 
 @app.route('/admin/users')
 @login_required
@@ -963,7 +1276,7 @@ def admin_users():
     seven_days_ago = datetime.utcnow() - timedelta(days=7)
     recent_signups = User.query.filter(User.created_at >= seven_days_ago).count()
 
-    return render_template('admin_users.html',
+    return render_template('admin_users-pixel.html',
                          users=users_pagination,
                          total_users=total_users,
                          subscribed_users=subscribed_users,

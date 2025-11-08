@@ -1,0 +1,319 @@
+{% extends 'base-pixel.html' %}
+
+{% block title %}Admin - Withdrawal Management - Prompts Library{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 2rem;
+    }
+    
+    .admin-card {
+        background: linear-gradient(135deg, #2b2b50 0%, #1a1a2e 100%);
+        border: 2px solid var(--pixel-purple);
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(122, 92, 255, 0.2);
+        margin-bottom: 2rem;
+    }
+    
+    .admin-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .admin-header h1 {
+        color: var(--pixel-cyan);
+        font-size: 2rem;
+        text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    }
+    
+    .filter-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        background: rgba(122, 92, 255, 0.2);
+        border: 2px solid var(--pixel-purple);
+        border-radius: 8px;
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-btn.active {
+        background: var(--pixel-purple);
+        box-shadow: 0 0 15px rgba(122, 92, 255, 0.5);
+    }
+    
+    .withdrawal-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .withdrawal-table th {
+        background: linear-gradient(90deg, #7a5cff, #9a7dff);
+        color: #fff;
+        padding: 1rem;
+        text-align: left;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .withdrawal-table td {
+        padding: 1rem;
+        border-bottom: 1px solid rgba(122, 92, 255, 0.2);
+    }
+    
+    .withdrawal-table tr:nth-child(even) {
+        background: rgba(122, 92, 255, 0.05);
+    }
+    
+    .withdrawal-table tr:hover {
+        background: rgba(0, 255, 255, 0.1);
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+    }
+    
+    .action-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        margin-right: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-approve {
+        background: linear-gradient(90deg, #00ff00, #00cc00);
+        color: #000;
+    }
+    
+    .btn-reject {
+        background: linear-gradient(90deg, #ff4f4f, #cc0000);
+        color: #fff;
+    }
+    
+    .btn-approve:hover,
+    .btn-reject:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: bold;
+        display: inline-block;
+    }
+    
+    .status-pending {
+        background: rgba(255, 204, 0, 0.2);
+        color: #ffcc00;
+        border: 1px solid #ffcc00;
+    }
+    
+    .status-approved {
+        background: rgba(0, 255, 0, 0.2);
+        color: #00ff00;
+        border: 1px solid #00ff00;
+    }
+    
+    .status-rejected {
+        background: rgba(255, 0, 0, 0.2);
+        color: #ff4f4f;
+        border: 1px solid #ff4f4f;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pixel-container">
+    <div class="admin-container">
+        <div class="admin-card">
+            <div class="admin-header">
+                <h1><i class="fas fa-money-bill-wave"></i> Withdrawal Management</h1>
+                <div class="filter-buttons">
+                    <a href="?status=all" class="filter-btn {% if status_filter == 'all' %}active{% endif %}">All</a>
+                    <a href="?status=pending" class="filter-btn {% if status_filter == 'pending' %}active{% endif %}">Pending</a>
+                    <a href="?status=approved" class="filter-btn {% if status_filter == 'approved' %}active{% endif %}">Approved</a>
+                    <a href="?status=rejected" class="filter-btn {% if status_filter == 'rejected' %}active{% endif %}">Rejected</a>
+                </div>
+            </div>
+            
+            {% if withdrawals %}
+                <table class="withdrawal-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Coins</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Details</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for withdrawal in withdrawals %}
+                        <tr>
+                            <td>#{{ withdrawal.id }}</td>
+                            <td>{{ withdrawal.user.username }}</td>
+                            <td>{{ withdrawal.coins }}</td>
+                            <td>₹{{ withdrawal.amount }}</td>
+                            <td>{{ withdrawal.payment_method }}</td>
+                            <td><code style="font-size: 0.85rem;">{{ withdrawal.payment_details[:30] }}...</code></td>
+                            <td>{{ withdrawal.created_at.strftime('%d %b %Y') }}</td>
+                            <td>
+                                <span class="status-badge status-{{ withdrawal.status }}">
+                                    {% if withdrawal.status == 'pending' %}⏳{% elif withdrawal.status == 'approved' %}✅{% else %}❌{% endif %}
+                                    {{ withdrawal.status.title() }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if withdrawal.status == 'pending' %}
+                                    <button class="action-btn btn-approve" onclick="approveWithdrawal({{ withdrawal.id }})">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+                                    <button class="action-btn btn-reject" onclick="rejectWithdrawal({{ withdrawal.id }})">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                {% else %}
+                                    <span style="color: #888;">{{ withdrawal.status.title() }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% if withdrawal.admin_note %}
+                        <tr>
+                            <td colspan="9" style="background: rgba(122, 92, 255, 0.1); padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                <strong>Admin Note:</strong> {{ withdrawal.admin_note }}
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p style="text-align: center; color: #888; padding: 3rem;">
+                    No withdrawal requests found for the selected filter.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+async function approveWithdrawal(withdrawalId) {
+    const { value: adminNote } = await Swal.fire({
+        title: 'Approve Withdrawal',
+        input: 'textarea',
+        inputLabel: 'Admin Note (optional)',
+        inputPlaceholder: 'Enter any notes about this approval...',
+        showCancelButton: true,
+        confirmButtonText: 'Approve',
+        confirmButtonColor: '#00cc00',
+        cancelButtonColor: '#7a5cff'
+    });
+    
+    if (adminNote !== undefined) {
+        try {
+            const response = await fetch(`/api/admin/withdrawal/${withdrawalId}/approve`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ admin_note: adminNote || '' })
+            });
+            
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Withdrawal Approved',
+                    text: 'The withdrawal has been marked as paid.',
+                    confirmButtonColor: '#7a5cff'
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to approve withdrawal',
+                    confirmButtonColor: '#ff4f4f'
+                });
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred',
+                confirmButtonColor: '#ff4f4f'
+            });
+        }
+    }
+}
+
+async function rejectWithdrawal(withdrawalId) {
+    const { value: reason } = await Swal.fire({
+        title: 'Reject Withdrawal',
+        input: 'textarea',
+        inputLabel: 'Rejection Reason (required)',
+        inputPlaceholder: 'Enter the reason for rejection...',
+        inputValidator: (value) => {
+            if (!value) {
+                return 'You must provide a reason for rejection!'
+            }
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Reject',
+        confirmButtonColor: '#ff4f4f',
+        cancelButtonColor: '#7a5cff'
+    });
+    
+    if (reason) {
+        try {
+            const response = await fetch(`/api/admin/withdrawal/${withdrawalId}/reject`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ admin_note: reason })
+            });
+            
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Withdrawal Rejected',
+                    text: 'The withdrawal has been rejected and coins refunded.',
+                    confirmButtonColor: '#7a5cff'
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to reject withdrawal',
+                    confirmButtonColor: '#ff4f4f'
+                });
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred',
+                confirmButtonColor: '#ff4f4f'
+            });
+        }
+    }
+}
+</script>
+{% endblock %}
