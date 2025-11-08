@@ -1,0 +1,398 @@
+{% extends "base-pixel.html" %}
+
+{% block title %}Coin Transactions - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+.admin-transactions-page {
+    padding: 2rem 0;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(122, 92, 255, 0.3);
+}
+
+.admin-header h1 {
+    font-family: 'VT323', monospace;
+    font-size: 2.5rem;
+    color: var(--pixel-cyan);
+    margin: 0;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.pixel-btn {
+    padding: 0.75rem 1.5rem;
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    background: var(--pixel-purple);
+    color: white;
+    border: 2px solid var(--pixel-purple);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pixel-btn:hover {
+    background: transparent;
+    color: var(--pixel-purple);
+    transform: translateY(-2px);
+}
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, rgba(122, 92, 255, 0.1) 0%, rgba(157, 78, 221, 0.05) 100%);
+    border: 2px solid var(--pixel-purple);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--pixel-cyan);
+    box-shadow: 0 10px 30px rgba(122, 92, 255, 0.3);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    display: inline-block;
+}
+
+.stat-icon.purchases { color: #28a745; }
+.stat-icon.spends { color: #ffc107; }
+.stat-icon.earnings { color: #00d4ff; }
+
+.stat-label {
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    color: rgba(248, 249, 250, 0.7);
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-family: 'VT323', monospace;
+    font-size: 2.5rem;
+    color: var(--pixel-white);
+    font-weight: bold;
+}
+
+.admin-section {
+    background: rgba(122, 92, 255, 0.05);
+    border: 2px solid rgba(122, 92, 255, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(122, 92, 255, 0.2);
+}
+
+.section-title {
+    font-family: 'VT323', monospace;
+    font-size: 1.8rem;
+    color: var(--pixel-purple);
+    margin: 0;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-tab {
+    padding: 0.5rem 1rem;
+    font-family: 'VT323', monospace;
+    font-size: 1rem;
+    background: rgba(122, 92, 255, 0.1);
+    color: var(--pixel-cyan);
+    border: 2px solid var(--pixel-purple);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.filter-tab:hover {
+    background: var(--pixel-purple);
+    color: white;
+}
+
+.filter-tab.active {
+    background: var(--pixel-purple);
+    color: white;
+}
+
+.transaction-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.transaction-table thead {
+    background: rgba(122, 92, 255, 0.1);
+}
+
+.transaction-table th {
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem;
+    color: var(--pixel-cyan);
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 2px solid rgba(122, 92, 255, 0.3);
+}
+
+.transaction-table td {
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    color: var(--pixel-white);
+    padding: 1rem;
+    border-bottom: 1px solid rgba(122, 92, 255, 0.1);
+}
+
+.transaction-table tr:hover {
+    background: rgba(0, 255, 255, 0.05);
+}
+
+.badge-pixel {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    font-family: 'VT323', monospace;
+    font-size: 0.95rem;
+    border-radius: 6px;
+    border: 1px solid;
+}
+
+.badge-success { background: rgba(40, 167, 69, 0.2); color: #28a745; border-color: #28a745; }
+.badge-warning { background: rgba(255, 193, 7, 0.2); color: #ffc107; border-color: #ffc107; }
+.badge-info { background: rgba(0, 212, 255, 0.2); color: #00d4ff; border-color: #00d4ff; }
+.badge-primary { background: rgba(122, 92, 255, 0.2); color: var(--pixel-purple); border-color: var(--pixel-purple); }
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+}
+
+.pagination a,
+.pagination span {
+    padding: 0.5rem 1rem;
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    background: rgba(122, 92, 255, 0.1);
+    color: var(--pixel-cyan);
+    border: 2px solid var(--pixel-purple);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.pagination a:hover {
+    background: var(--pixel-purple);
+    color: white;
+}
+
+.pagination .active {
+    background: var(--pixel-purple);
+    color: white;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--pixel-purple);
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem;
+    color: rgba(248, 249, 250, 0.7);
+}
+
+@media (max-width: 768px) {
+    .stat-grid {
+        grid-template-columns: 1fr;
+    }
+    .section-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    .filter-tabs {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pixel-container admin-transactions-page">
+    <div class="admin-header">
+        <h1><i class="fas fa-exchange-alt"></i> PM Coin Transactions</h1>
+        <a href="{{ url_for('admin_dashboard') }}" class="pixel-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-icon purchases"><i class="fas fa-shopping-cart"></i></div>
+            <div class="stat-label">Total Purchases</div>
+            <div class="stat-value">{{ total_adds }}</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon spends"><i class="fas fa-arrow-down"></i></div>
+            <div class="stat-label">Total Spends</div>
+            <div class="stat-value">{{ total_spends }}</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon earnings"><i class="fas fa-arrow-up"></i></div>
+            <div class="stat-label">Creator Earnings</div>
+            <div class="stat-value">{{ total_earns }}</div>
+        </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="admin-section">
+        <div class="section-header">
+            <h3 class="section-title"><i class="fas fa-list"></i> Transaction History</h3>
+            <div class="filter-tabs">
+                <a href="{{ url_for('admin_transactions') }}" class="filter-tab {% if not transaction_type %}active{% endif %}">
+                    <i class="fas fa-list"></i> All
+                </a>
+                <a href="{{ url_for('admin_transactions', type='add') }}" class="filter-tab {% if transaction_type == 'add' %}active{% endif %}">
+                    <i class="fas fa-plus"></i> Purchases
+                </a>
+                <a href="{{ url_for('admin_transactions', type='spend') }}" class="filter-tab {% if transaction_type == 'spend' %}active{% endif %}">
+                    <i class="fas fa-minus"></i> Spends
+                </a>
+                <a href="{{ url_for('admin_transactions', type='earn') }}" class="filter-tab {% if transaction_type == 'earn' %}active{% endif %}">
+                    <i class="fas fa-arrow-up"></i> Earnings
+                </a>
+            </div>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="transaction-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                        <th>Date & Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for txn in transactions.items %}
+                    <tr>
+                        <td style="color: rgba(248, 249, 250, 0.5);">#{{ txn.id }}</td>
+                        <td>
+                            <a href="{{ url_for('public_profile', username=txn.user.username) }}" style="color: var(--pixel-cyan); text-decoration: none;">
+                                {{ txn.user.username }}
+                            </a>
+                            {% if txn.user.user_role == 'creator' or txn.user.user_role == 'admin' %}
+                                <span class="badge-pixel badge-primary" style="margin-left: 0.5rem; font-size: 0.85rem;">Creator</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if txn.transaction_type == 'add' %}
+                                <span class="badge-pixel badge-success">
+                                    <i class="fas fa-plus"></i> Purchase
+                                </span>
+                            {% elif txn.transaction_type == 'spend' %}
+                                <span class="badge-pixel badge-warning">
+                                    <i class="fas fa-minus"></i> Spend
+                                </span>
+                            {% elif txn.transaction_type == 'earn' %}
+                                <span class="badge-pixel badge-info">
+                                    <i class="fas fa-arrow-up"></i> Earn
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td style="color: {% if txn.transaction_type == 'spend' %}#ff6ec7{% else %}#00d4ff{% endif %};">
+                            <strong>{% if txn.transaction_type == 'spend' %}-{% else %}+{% endif %}{{ txn.amount }} 💰</strong>
+                        </td>
+                        <td style="color: rgba(248, 249, 250, 0.7);">{{ txn.description }}</td>
+                        <td style="color: rgba(248, 249, 250, 0.5);">{{ txn.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <p>No transactions found</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if transactions.pages > 1 %}
+        <div class="pagination">
+            {% if transactions.has_prev %}
+                <a href="{{ url_for('admin_transactions', page=transactions.prev_num, type=transaction_type) }}">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+            {% endif %}
+
+            {% for page_num in transactions.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                    {% if page_num == transactions.page %}
+                        <span class="active">{{ page_num }}</span>
+                    {% else %}
+                        <a href="{{ url_for('admin_transactions', page=page_num, type=transaction_type) }}">{{ page_num }}</a>
+                    {% endif %}
+                {% else %}
+                    <span style="border: none; background: none;">...</span>
+                {% endif %}
+            {% endfor %}
+
+            {% if transactions.has_next %}
+                <a href="{{ url_for('admin_transactions', page=transactions.next_num, type=transaction_type) }}">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

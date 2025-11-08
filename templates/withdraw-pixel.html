@@ -1,0 +1,318 @@
+{% extends 'base-pixel.html' %}
+
+{% block title %}Withdraw PM Coins - Prompts Library{% endblock %}
+
+{% block extra_css %}
+<style>
+    .withdraw-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+    }
+    
+    .withdraw-card {
+        background: linear-gradient(135deg, #2b2b50 0%, #1a1a2e 100%);
+        border: 2px solid var(--pixel-purple);
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(122, 92, 255, 0.2);
+        margin-bottom: 2rem;
+    }
+    
+    .withdraw-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .withdraw-header h1 {
+        color: var(--pixel-cyan);
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    }
+    
+    .balance-display {
+        background: rgba(0, 255, 255, 0.1);
+        border: 2px solid var(--pixel-cyan);
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .balance-amount {
+        font-size: 2.5rem;
+        color: #ffcc00;
+        font-weight: bold;
+        text-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
+    }
+    
+    .conversion-info {
+        background: rgba(122, 92, 255, 0.1);
+        border: 2px solid var(--pixel-purple);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        color: var(--pixel-cyan);
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 0.75rem;
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid var(--pixel-purple);
+        border-radius: 8px;
+        color: #fff;
+        font-size: 1rem;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: var(--pixel-cyan);
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+    }
+    
+    .btn-withdraw {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(90deg, var(--pixel-purple), var(--pixel-cyan));
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        font-size: 1.2rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-withdraw:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(122, 92, 255, 0.5);
+    }
+    
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+    
+    .history-table th {
+        background: linear-gradient(90deg, #7a5cff, #9a7dff);
+        color: #fff;
+        padding: 1rem;
+        text-align: left;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .history-table td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid rgba(122, 92, 255, 0.2);
+    }
+    
+    .history-table tr:nth-child(even) {
+        background: rgba(122, 92, 255, 0.05);
+    }
+    
+    .history-table tr:hover {
+        background: rgba(0, 255, 255, 0.1);
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: bold;
+        display: inline-block;
+    }
+    
+    .status-pending {
+        background: rgba(255, 204, 0, 0.2);
+        color: #ffcc00;
+        border: 1px solid #ffcc00;
+    }
+    
+    .status-approved {
+        background: rgba(0, 255, 0, 0.2);
+        color: #00ff00;
+        border: 1px solid #00ff00;
+    }
+    
+    .status-rejected {
+        background: rgba(255, 0, 0, 0.2);
+        color: #ff4f4f;
+        border: 1px solid #ff4f4f;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pixel-container">
+    <div class="withdraw-container">
+        <div class="withdraw-card">
+            <div class="withdraw-header">
+                <h1>💰 Withdraw PM Coins</h1>
+                <p>Convert your PM Coins into real money</p>
+            </div>
+            
+            <div class="balance-display">
+                <div style="font-size: 1rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">Your Balance</div>
+                <div class="balance-amount">{{ user.coins_balance }} <i class="fas fa-coins"></i></div>
+            </div>
+            
+            <div class="conversion-info">
+                <p style="margin: 0; font-size: 1.1rem;">
+                    <strong>💰 Conversion Rate:</strong> 100 PM Coins = ₹10<br>
+                    <small style="color: #ffcc00;">Minimum withdrawal: 100 coins</small>
+                </p>
+            </div>
+            
+            <form id="withdrawForm">
+                <div class="form-group">
+                    <label>Coins to Withdraw</label>
+                    <input type="number" id="coins" name="coins" min="100" step="50" required 
+                           placeholder="Enter amount (min 100)">
+                    <small id="amountDisplay" style="color: #ffcc00; margin-top: 0.5rem; display: block;"></small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <select id="payment_method" name="payment_method" required>
+                        <option value="">Select payment method</option>
+                        <option value="UPI">UPI</option>
+                        <option value="GPay">Google Pay</option>
+                        <option value="PhonePe">PhonePe</option>
+                        <option value="Paytm">Paytm</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Payment Details (UPI ID, Phone Number, or Account Details)</label>
+                    <input type="text" id="payment_details" name="payment_details" required
+                           placeholder="Enter your payment details">
+                </div>
+                
+                <button type="submit" class="btn-withdraw">Request Withdrawal</button>
+            </form>
+        </div>
+        
+        <div class="withdraw-card">
+            <h2 style="color: var(--pixel-cyan); margin-bottom: 1.5rem;">
+                <i class="fas fa-history"></i> Withdrawal History
+            </h2>
+            
+            {% if withdraw_requests %}
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Coins</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in withdraw_requests %}
+                        <tr>
+                            <td>{{ req.created_at.strftime('%d %b %Y') }}</td>
+                            <td>{{ req.coins }}</td>
+                            <td>₹{{ req.amount }}</td>
+                            <td>{{ req.payment_method }}</td>
+                            <td>
+                                <span class="status-badge status-{{ req.status }}">
+                                    {% if req.status == 'pending' %}⏳{% elif req.status == 'approved' %}✅{% else %}❌{% endif %}
+                                    {{ req.status.title() }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p style="text-align: center; color: #888; padding: 2rem;">
+                    No withdrawal requests yet. Create your first withdrawal request above!
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('coins').addEventListener('input', function() {
+    const coins = parseInt(this.value) || 0;
+    const amount = (coins / 10).toFixed(2);
+    document.getElementById('amountDisplay').textContent = 
+        coins >= 100 ? `You will receive ₹${amount}` : 'Minimum 100 coins required';
+});
+
+document.getElementById('withdrawForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const coins = parseInt(document.getElementById('coins').value);
+    const payment_method = document.getElementById('payment_method').value;
+    const payment_details = document.getElementById('payment_details').value;
+    
+    if (coins < 100) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Amount',
+            text: 'Minimum withdrawal is 100 coins',
+            confirmButtonColor: '#7a5cff'
+        });
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/withdraw/request', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ coins, payment_method, payment_details })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Withdrawal Requested!',
+                text: '✅ Your withdrawal request has been received! Processing time: 24–48 hours.',
+                confirmButtonColor: '#7a5cff'
+            }).then(() => {
+                window.location.reload();
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Request Failed',
+                text: data.error || 'Failed to process withdrawal request',
+                confirmButtonColor: '#ff4f4f'
+            });
+        }
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred. Please try again.',
+            confirmButtonColor: '#ff4f4f'
+        });
+    }
+});
+</script>
+{% endblock %}

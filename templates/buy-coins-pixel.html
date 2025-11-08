@@ -1,0 +1,291 @@
+{% extends "base-pixel.html" %}
+
+{% block title %}Buy PM Coins - Prompts Library{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .coin-card { background: rgba(26, 26, 31, 0.9); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; transition: all 0.3s ease; }
+        .coin-card:hover { border-color: var(--pixel-cyan); box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); transform: translateY(-5px); }
+        .coin-price { font-family: 'Press Start 2P', cursive; font-size: 2.5rem; color: var(--pixel-gold); text-shadow: 0 0 10px var(--pixel-gold); }
+        .coin-badge { display: inline-block; padding: 0.3rem 1rem; background: linear-gradient(135deg, #FFD700, #FF8C00); color: #0B0B10; font-family: 'Press Start 2P', cursive; font-size: 0.7rem; border-radius: 4px; margin-bottom: 1rem; }
+        .feature-list { list-style: none; padding: 0; margin: 1.5rem 0; }
+        .feature-list li { padding: 0.5rem 0; font-family: 'VT323', monospace; font-size: 1.1rem; color: rgba(248, 249, 250, 0.9); }
+        .feature-list li i { color: var(--pixel-cyan); margin-right: 0.5rem; }
+        .wallet-display { background: linear-gradient(135deg, rgba(157, 78, 221, 0.2), rgba(123, 44, 191, 0.2)); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; text-align: center; }
+        .wallet-balance { font-family: 'Press Start 2P', cursive; font-size: 2rem; color: var(--pixel-gold); text-shadow: 0 0 10px var(--pixel-gold); }
+        .creator-section { background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.1)); border: 2px solid var(--pixel-gold); border-radius: 12px; padding: 2rem; margin-top: 3rem; }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="pixel-container" style="padding: 2rem 1rem;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <h1 style="font-family: 'Press Start 2P', cursive; font-size: 2rem; background: linear-gradient(135deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; filter: drop-shadow(0 0 15px #FFD700);">
+                💰 Buy PM Coins
+            </h1>
+            <p style="font-family: 'VT323', monospace; font-size: 1.3rem; color: rgba(248, 249, 250, 0.8);">Power up your creative journey with PM Coins!</p>
+        </div>
+
+        <!-- Wallet Display -->
+        <div class="wallet-display">
+            <div style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.8); margin-bottom: 0.5rem;">Your Wallet</div>
+            <div class="wallet-balance" id="walletBalance">{{ current_user.coins_balance }} 💰</div>
+            <div style="font-family: 'VT323', monospace; font-size: 1rem; color: rgba(248, 249, 250, 0.6); margin-top: 0.5rem;">PM Coins</div>
+        </div>
+
+        <!-- Coin Packages -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; max-width: 900px; margin: 0 auto;">
+            <!-- 200 Coins Package -->
+            <div class="coin-card">
+                <div class="coin-badge">STARTER</div>
+                <h2 style="font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: var(--pixel-white); margin-bottom: 1rem;">200 PM Coins</h2>
+                <div class="coin-price">₹49</div>
+                <p style="font-family: 'VT323', monospace; color: rgba(248, 249, 250, 0.7); margin: 0.5rem 0 1.5rem;">Perfect for getting started</p>
+                
+                <ul class="feature-list">
+                    <li><i class="fas fa-coins"></i> 200 PM Coins</li>
+                    <li><i class="fas fa-users"></i> Join 4 creator circles</li>
+                    <li><i class="fas fa-lock-open"></i> Access exclusive prompts</li>
+                    <li><i class="fas fa-star"></i> Support your favorite creators</li>
+                </ul>
+                
+                <button onclick="buyCoinPackage('200')" class="pixel-btn pixel-btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">Buy 200 Coins</button>
+            </div>
+
+            <!-- 1000 Coins Package -->
+            <div class="coin-card" style="border-color: var(--pixel-gold); box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);">
+                <div class="coin-badge" style="background: linear-gradient(135deg, #FFD700, #FFA500);">BEST VALUE</div>
+                <h2 style="font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: var(--pixel-gold); margin-bottom: 1rem;">1000 PM Coins</h2>
+                <div class="coin-price">₹199</div>
+                <p style="font-family: 'VT323', monospace; color: rgba(248, 249, 250, 0.7); margin: 0.5rem 0;">Great value pack</p>
+                <p style="font-family: 'VT323', monospace; color: #00FF00; font-size: 1.1rem; margin-bottom: 1.5rem;">₹0.20 per coin!</p>
+                
+                <ul class="feature-list">
+                    <li><i class="fas fa-coins"></i> 1000 PM Coins</li>
+                    <li><i class="fas fa-users"></i> Join 20 creator circles</li>
+                    <li><i class="fas fa-crown"></i> Become a creator (400 coins)</li>
+                    <li><i class="fas fa-lock-open"></i> Access exclusive content</li>
+                    <li><i class="fas fa-star"></i> Support multiple creators</li>
+                </ul>
+                
+                <button onclick="buyCoinPackage('1000')" class="pixel-btn pixel-btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem; background: linear-gradient(135deg, #9D4EDD, #7B2CBF);">Buy 1000 Coins</button>
+            </div>
+        </div>
+
+        <!-- Become Creator Section -->
+        {% if current_user.user_role == 'user' %}
+        <div class="creator-section">
+            <div style="text-align: center;">
+                <h3 style="font-family: 'Press Start 2P', cursive; font-size: 1.2rem; color: var(--pixel-gold); margin-bottom: 1rem;">
+                    <i class="fas fa-crown"></i> Become a Creator
+                </h3>
+                <p style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.9); margin-bottom: 1.5rem;">
+                    Unlock creator privileges and start earning PM Coins from your followers!
+                </p>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="font-family: 'Press Start 2P', cursive; font-size: 1.5rem; color: var(--pixel-gold); margin-bottom: 0.5rem;">400 PM Coins</div>
+                    <div style="font-family: 'VT323', monospace; font-size: 1.1rem; color: rgba(248, 249, 250, 0.7);">One-time upgrade cost</div>
+                </div>
+                
+                <ul class="feature-list" style="text-align: left; max-width: 500px; margin: 1.5rem auto;">
+                    <li><i class="fas fa-check"></i> Create exclusive prompts</li>
+                    <li><i class="fas fa-check"></i> Build your circle of followers</li>
+                    <li><i class="fas fa-check"></i> Earn 50 coins per circle join</li>
+                    <li><i class="fas fa-check"></i> Creator badge on your profile</li>
+                    <li><i class="fas fa-check"></i> Priority support</li>
+                </ul>
+                
+                <button onclick="becomeCreator()" id="becomeCreatorBtn" class="pixel-btn" style="padding: 1rem 2rem; font-size: 1.1rem; background: linear-gradient(135deg, #FFD700, #FF8C00); color: #0B0B10; font-weight: bold;">
+                    <i class="fas fa-crown" style="margin-right: 0.5rem;"></i>Become Creator (400 Coins)
+                </button>
+            </div>
+        </div>
+        {% elif current_user.user_role == 'creator' %}
+        <div class="creator-section">
+            <div style="text-align: center;">
+                <h3 style="font-family: 'Press Start 2P', cursive; font-size: 1.2rem; color: #00FF00; margin-bottom: 1rem;">
+                    <i class="fas fa-check-circle"></i> You are a Creator!
+                </h3>
+                <p style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.9);">
+                    Create exclusive content and earn PM Coins from your circle members.
+                </p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- What are PM Coins? -->
+        <div style="margin-top: 3rem; padding: 2rem; background: rgba(0, 255, 255, 0.05); border: 2px solid var(--pixel-cyan); border-radius: 12px;">
+            <h3 style="font-family: 'Press Start 2P', cursive; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 1.5rem; text-align: center;">
+                What are PM Coins?
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                <div style="text-align: center;">
+                    <i class="fas fa-users" style="font-size: 2rem; color: var(--pixel-purple); margin-bottom: 0.5rem;"></i>
+                    <h4 style="font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-white); margin-bottom: 0.5rem;">Join Circles</h4>
+                    <p style="font-family: 'VT323', monospace; font-size: 1rem; color: rgba(248, 249, 250, 0.7);">Use 50 coins to join a creator's circle and access their exclusive prompts</p>
+                </div>
+                <div style="text-align: center;">
+                    <i class="fas fa-crown" style="font-size: 2rem; color: var(--pixel-gold); margin-bottom: 0.5rem;"></i>
+                    <h4 style="font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-white); margin-bottom: 0.5rem;">Become Creator</h4>
+                    <p style="font-family: 'VT323', monospace; font-size: 1rem; color: rgba(248, 249, 250, 0.7);">Upgrade to creator status for 400 coins and start earning</p>
+                </div>
+                <div style="text-align: center;">
+                    <i class="fas fa-gift" style="font-size: 2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;"></i>
+                    <h4 style="font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-white); margin-bottom: 0.5rem;">Support Creators</h4>
+                    <p style="font-family: 'VT323', monospace; font-size: 1rem; color: rgba(248, 249, 250, 0.7);">Your circle joins directly support creators you love</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        function buyCoinPackage(packageType) {
+            fetch('/create-coin-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ package: packageType })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.error,
+                        confirmButtonColor: '#7a5cff'
+                    });
+                    return;
+                }
+                
+                const options = {
+                    key: data.razorpayKey,
+                    amount: data.amount * 100,
+                    currency: 'INR',
+                    name: 'Prompts Library',
+                    description: `Buy ${data.coins} PM Coins`,
+                    order_id: data.orderId,
+                    handler: function (response) {
+                        verifyPayment(response, data.coins, data.amount);
+                    },
+                    prefill: {
+                        email: '{{ current_user.email }}',
+                        contact: ''
+                    },
+                    theme: {
+                        color: '#9D4EDD'
+                    }
+                };
+                
+                const rzp = new Razorpay(options);
+                rzp.open();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Order Failed',
+                    text: 'Failed to create order. Please try again.',
+                    confirmButtonColor: '#7a5cff'
+                });
+            });
+        }
+        
+        function verifyPayment(response, coins, amount) {
+            fetch('/verify-coin-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_signature: response.razorpay_signature,
+                    coins: coins,
+                    amount: amount
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('walletBalance').textContent = data.newBalance + ' 💰';
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Payment Successful!',
+                        text: data.message,
+                        confirmButtonColor: '#7a5cff'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Verification Failed',
+                        text: data.error,
+                        confirmButtonColor: '#ff4f4f'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Payment Error',
+                    text: 'Failed to verify payment. Please contact support.',
+                    confirmButtonColor: '#ff4f4f'
+                });
+            });
+        }
+        
+        async function becomeCreator() {
+            const result = await Swal.fire({
+                title: 'Become a Creator?',
+                html: '<p style="font-size: 1rem;">Upgrade to Creator status for <strong>400 PM Coins</strong></p><p style="font-size: 0.9rem; color: #888; margin-top: 0.5rem;">Start earning when users join your circle!</p>',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#7a5cff',
+                cancelButtonColor: '#888',
+                confirmButtonText: 'Yes, upgrade!',
+                cancelButtonText: 'Not now'
+            });
+            
+            if (!result.isConfirmed) return;
+            
+            fetch('/become-creator', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('walletBalance').textContent = data.newBalance + ' 💰';
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Congratulations! 🎉',
+                        text: data.message,
+                        confirmButtonColor: '#7a5cff'
+                    }).then(() => location.reload());
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Upgrade Failed',
+                        text: data.message,
+                        confirmButtonColor: '#ff4f4f'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to upgrade. Please try again.',
+                    confirmButtonColor: '#ff4f4f'
+                });
+            });
+        }
+    </script>
+{% endblock %}

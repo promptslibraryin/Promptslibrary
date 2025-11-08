@@ -39,6 +39,13 @@
         filter: drop-shadow(0 0 15px #00FFFF);
     }
     
+    /* Circle Members Grid */
+    .circle-members-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 1rem;
+    }
+    
     /* Mobile responsive styles */
     @media (max-width: 768px) {
         .profile-header-grid {
@@ -72,6 +79,11 @@
         .stat-card h3 {
             font-size: 0.8rem !important;
         }
+        
+        .circle-members-grid {
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)) !important;
+            gap: 0.8rem !important;
+        }
     }
     
     @media (max-width: 480px) {
@@ -83,6 +95,20 @@
         .profile-image {
             width: 100px;
             height: 100px;
+        }
+        
+        .circle-members-grid {
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)) !important;
+            gap: 0.6rem !important;
+        }
+        
+        .circle-members-grid img {
+            width: 50px !important;
+            height: 50px !important;
+        }
+        
+        .circle-members-grid div[style*="font-size"] {
+            font-size: 0.8rem !important;
         }
     }
 </style>
@@ -148,6 +174,15 @@
                         <h3 style="font-family: 'Press Start 2P', cursive; font-size: 0.8rem; color: var(--pixel-white); margin-bottom: 0.3rem;">{{ user.created_at.strftime('%b %Y') }}</h3>
                         <small style="font-family: 'VT323', monospace; font-size: 1rem; color: rgba(248, 249, 250, 0.7);">Member Since</small>
                     </div>
+                    {% if user.user_role == 'creator' %}
+                    <div class="stat-card" style="background: rgba(0, 255, 255, 0.1); border: 2px solid var(--pixel-cyan); border-radius: 8px; padding: 1.2rem; text-align: center;">
+                        <div style="font-size: 2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 style="font-family: 'Press Start 2P', cursive; font-size: 1rem; color: var(--pixel-white); margin-bottom: 0.3rem;">{{ circle_count }}</h3>
+                        <small style="font-family: 'VT323', monospace; font-size: 1rem; color: rgba(248, 249, 250, 0.7);">Circle Members</small>
+                    </div>
+                    {% else %}
                     <div class="stat-card" style="background: rgba(255, 215, 0, 0.1); border: 2px solid var(--pixel-gold); border-radius: 8px; padding: 1.2rem; text-align: center;">
                         <div style="font-size: 2rem; color: var(--pixel-gold); margin-bottom: 0.5rem;">
                             <i class="fas fa-award"></i>
@@ -155,10 +190,48 @@
                         <h3 style="font-family: 'Press Start 2P', cursive; font-size: 0.9rem; color: var(--pixel-white); margin-bottom: 0.3rem;">{{ 'Premium' if user.is_subscribed else 'Free' }}</h3>
                         <small style="font-family: 'VT323', monospace; font-size: 1rem; color: rgba(248, 249, 250, 0.7);">Membership</small>
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Circle Members Section (for Creators) -->
+    {% if user.user_role == 'creator' and circle_count > 0 %}
+    <div style="background: rgba(26, 26, 31, 0.6); border: 2px solid var(--pixel-cyan); border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="font-family: 'Press Start 2P', cursive; font-size: 1rem; color: var(--pixel-cyan); margin: 0;">
+                <i class="fas fa-users"></i> Circle Members ({{ circle_count }})
+            </h3>
+        </div>
+        
+        <div class="circle-members-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 1rem;">
+            {% for member in circle_members %}
+            <a href="{{ url_for('public_profile', username=member.username) }}" 
+               style="text-decoration: none; color: inherit; text-align: center; transition: transform 0.2s;"
+               onmouseover="this.style.transform='scale(1.05)'"
+               onmouseout="this.style.transform='scale(1)'">
+                <div style="margin-bottom: 0.5rem;">
+                    <img src="{{ member.profile_pic or url_for('static', filename='images/default-profile.svg') }}" 
+                         alt="{{ member.username }}" 
+                         style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--pixel-cyan); box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);">
+                </div>
+                <div style="font-family: 'VT323', monospace; font-size: 0.9rem; color: var(--pixel-white); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    {{ member.username }}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        
+        {% if circle_count > 12 %}
+        <div style="text-align: center; margin-top: 1.5rem;">
+            <span style="font-family: 'VT323', monospace; font-size: 1.1rem; color: rgba(248, 249, 250, 0.7);">
+                + {{ circle_count - 12 }} more members
+            </span>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
 
     <!-- Prompts Section -->
     {% if prompts %}

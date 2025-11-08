@@ -6,8 +6,23 @@
     <title>{% block title %}Prompts Library - India's #1 AI Platform{% endblock %}</title>
     
     {% block meta %}
-    <meta name="description" content="India's first AI-powered social platform for prompts">
-    <meta name="keywords" content="AI prompts, ChatGPT, Midjourney, Gemini">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NG19P2YBTF"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-NG19P2YBTF');
+    </script>
+    <meta name="description" content="India's first AI-powered social platform where creators share prompts, earn PM Coins, and build exclusive circles. Join creator circles, discover premium AI prompts, and monetize your creativity.">
+    <meta name="keywords" content="AI prompts, PM Coins, creator circles, ChatGPT, Midjourney, Gemini, exclusive prompts, creator monetization, AI social platform, India AI platform">
+    <meta property="og:title" content="Prompts Library - India's #1 AI Platform with PM Coins & Circles">
+    <meta property="og:description" content="Share AI prompts, join exclusive creator circles, and earn PM Coins. India's first gamified AI social platform for creators.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Prompts Library - PM Coins & Creator Circles">
+    <meta name="twitter:description" content="India's first AI social platform with virtual currency and exclusive creator circles.">
     {% endblock %}
     {% block extra_meta %}{% endblock %}
     
@@ -38,17 +53,41 @@
             <a href="{{ url_for('gallery') }}" {% if request.endpoint == 'gallery' %}class="active"{% endif %}><i class="fas fa-th"></i> <span>Gallery</span></a>
             {% if current_user.is_authenticated and (current_user.is_otp_verified is defined) and current_user.is_otp_verified %}
                 <a href="{{ url_for('add_prompt') }}" {% if request.endpoint == 'add_prompt' %}class="active"{% endif %}><i class="fas fa-plus"></i> <span>Upload</span></a>
-                <a href="{{ url_for('subscription') }}" {% if request.endpoint == 'subscription' %}class="active"{% endif %}><i class="fas fa-coins"></i> <span>Buy Coins</span></a>
+                <a href="{{ url_for('buy_coins') }}" {% if request.endpoint == 'buy_coins' %}class="active"{% endif %} style="position: relative;">
+                    <i class="fas fa-coins"></i> <span>{{ current_user.coins_balance }} Buy Coins</span>
+                </a>
                 <a href="{{ url_for('public_profile', username=current_user.username) }}" {% if request.endpoint == 'public_profile' %}class="active"{% endif %}><i class="fas fa-user"></i> <span>Profile</span></a>
+                <!-- Notification Bell -->
+                <div class="nav-dropdown">
+                    <button class="nav-dropdown-btn" onclick="toggleDropdown('notificationDropdown')" id="notificationBtn">
+                        <i class="fas fa-bell"></i>
+                        <span id="notificationBadge" class="notification-badge" style="display: none;"></span>
+                    </button>
+                    <div id="notificationDropdown" class="nav-dropdown-content notification-panel" style="min-width: 320px; max-height: 400px; overflow-y: auto;">
+                        <div class="dropdown-header">
+                            <i class="fas fa-bell"></i> Notifications
+                            <button onclick="clearAllNotifications()" style="float: right; background: none; border: none; color: #ff4f4f; cursor: pointer; font-size: 0.85rem;">Clear All</button>
+                        </div>
+                        <div id="notificationList">
+                            <p style="text-align: center; padding: 2rem; color: #888;">Loading notifications...</p>
+                        </div>
+                    </div>
+                </div>
                 <!-- Three Dots Menu (⋯) for secondary actions -->
                 <div class="nav-dropdown">
                     <button class="nav-dropdown-btn" onclick="toggleDropdown('navDropdownMenu')">
                         <i class="fas fa-ellipsis-v"></i>
                     </button>
                     <div id="navDropdownMenu" class="nav-dropdown-content">
+                        <div class="dropdown-header"><i class="fas fa-coins"></i> PM Coins: {{ current_user.coins_balance }}</div>
+                        <a href="{{ url_for('withdraw_page') }}"><i class="fas fa-money-bill-wave"></i> Withdraw Coins</a>
+                        <div class="dropdown-divider"></div>
                         {% if current_user.is_admin %}
                             <div class="dropdown-header"><i class="fas fa-shield-alt"></i> Admin Section</div>
+                            <a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-chart-line"></i> Dashboard</a>
                             <a href="{{ url_for('admin_users') }}"><i class="fas fa-users"></i> Manage Users</a>
+                            <a href="{{ url_for('admin_transactions') }}"><i class="fas fa-coins"></i> Transactions</a>
+                            <a href="{{ url_for('admin_withdrawals') }}"><i class="fas fa-money-bill-wave"></i> Withdrawals</a>
                             <a href="{{ url_for('admin_sponsorships') }}"><i class="fas fa-ad"></i> Sponsorships</a>
                             <div class="dropdown-divider"></div>
                         {% endif %}
@@ -95,9 +134,9 @@
                 <div class="nav-icon"><i class="fas fa-plus"></i></div>
                 <span>Upload</span>
             </a>
-            <a href="{{ url_for('subscription') }}" {% if request.endpoint == 'subscription' %}class="active"{% endif %}>
+            <a href="{{ url_for('buy_coins') }}" {% if request.endpoint == 'buy_coins' %}class="active"{% endif %}>
                 <div class="nav-icon"><i class="fas fa-coins"></i></div>
-                <span>Buy Coins</span>
+                <span>{{ current_user.coins_balance }} Buy Coins</span>
             </a>
             <a href="{{ url_for('public_profile', username=current_user.username) }}" {% if request.endpoint == 'public_profile' %}class="active"{% endif %}>
                 <div class="nav-icon"><i class="fas fa-user"></i></div>
@@ -118,5 +157,97 @@
     {% block extra_js %}{% endblock %}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.12.4/dist/sweetalert2.all.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <script>
+    // Notification System
+    {% if current_user.is_authenticated and current_user.is_otp_verified %}
+    async function loadNotifications() {
+        try {
+            const response = await fetch('/api/notifications');
+            const data = await response.json();
+            
+            const badge = document.getElementById('notificationBadge');
+            const list = document.getElementById('notificationList');
+            
+            if (data.unread_count > 0) {
+                badge.textContent = data.unread_count;
+                badge.style.display = 'block';
+            } else {
+                badge.style.display = 'none';
+            }
+            
+            if (data.notifications.length === 0) {
+                list.innerHTML = '<p style="text-align: center; padding: 2rem; color: #888;">No notifications yet</p>';
+                return;
+            }
+            
+            list.innerHTML = data.notifications.map(n => `
+                <div class="notification-item ${n.is_read ? 'read' : 'unread'}" 
+                     style="padding: 0.75rem; border-bottom: 1px solid rgba(122, 92, 255, 0.2); cursor: pointer;"
+                     onclick="markAsRead(${n.id})">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div style="flex: 1;">
+                            <p style="margin: 0; ${n.is_read ? 'color: #888;' : 'color: #fff; font-weight: 600;'}">${n.message}</p>
+                            <small style="color: #888;">${new Date(n.created_at).toLocaleString()}</small>
+                        </div>
+                        ${!n.is_read ? '<div style="width: 8px; height: 8px; background: var(--pixel-cyan); border-radius: 50%; margin-left: 0.5rem;"></div>' : ''}
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Failed to load notifications:', error);
+        }
+    }
+    
+    async function markAsRead(notificationId) {
+        try {
+            await fetch(`/api/notifications/${notificationId}/read`, {
+                method: 'POST'
+            });
+            loadNotifications();
+        } catch (error) {
+            console.error('Failed to mark notification as read:', error);
+        }
+    }
+    
+    async function clearAllNotifications() {
+        const result = await Swal.fire({
+            title: 'Clear All Notifications?',
+            text: 'This will permanently delete all your notifications',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#7a5cff',
+            cancelButtonColor: '#888',
+            confirmButtonText: 'Yes, clear all'
+        });
+        
+        if (result.isConfirmed) {
+            try {
+                await fetch('/api/notifications/clear-all', {
+                    method: 'POST'
+                });
+                loadNotifications();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Cleared!',
+                    text: 'All notifications have been cleared',
+                    confirmButtonColor: '#7a5cff'
+                });
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to clear notifications',
+                    confirmButtonColor: '#ff4f4f'
+                });
+            }
+        }
+    }
+    
+    // Load notifications on page load and refresh every 30 seconds
+    loadNotifications();
+    setInterval(loadNotifications, 30000);
+    {% endif %}
+    </script>
 </body>
 </html>

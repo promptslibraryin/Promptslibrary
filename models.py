@@ -59,9 +59,20 @@ class User(UserMixin, db.Model):
     is_otp_verified = db.Column(db.Boolean, default=False, nullable=False)
     last_otp_sent = db.Column(db.DateTime, nullable=True)
     
+    # PM Coins System fields (v1.0)
+    coins_balance = db.Column(db.Integer, default=0, nullable=False)
+    total_earned_coins = db.Column(db.Integer, default=0, nullable=False)
+    total_spent_coins = db.Column(db.Integer, default=0, nullable=False)
+    user_role = db.Column(db.String(20), default='user', nullable=False)
+    
     # Relationships
     prompts = db.relationship('Prompt', backref='creator', lazy=True, cascade='all, delete-orphan')
     saved_prompts = db.relationship('SavedPrompt', backref='user', lazy=True, cascade='all, delete-orphan')
+    coin_transactions = db.relationship('CoinTransaction', backref='user', lazy=True, cascade='all, delete-orphan')
+    circles_joined = db.relationship('Circle', foreign_keys='Circle.user_id', backref='member', lazy=True, cascade='all, delete-orphan')
+    circle_members = db.relationship('Circle', foreign_keys='Circle.creator_id', backref='creator_user', lazy=True, cascade='all, delete-orphan')
+    notifications = db.relationship('Notification', backref='user', lazy=True, cascade='all, delete-orphan')
+    withdraw_requests = db.relationship('WithdrawRequest', backref='user', lazy=True, cascade='all, delete-orphan')
 
 
 class Category(db.Model):
@@ -103,6 +114,7 @@ class Prompt(db.Model):
     image_url = db.Column(db.String(500), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     slug = db.Column(db.String(255), unique=True, index=True)
+    access_level = db.Column(db.String(20), default='basic', nullable=False)
     
     # Foreign Keys
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -155,6 +167,58 @@ class Sponsorship(db.Model):
     
     # Foreign Keys
     admin_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+
+class CoinTransaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    transaction_type = db.Column(db.String(20), nullable=False)
+    amount = db.Column(db.Integer, nullable=False)
+    description = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Foreign Keys
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+
+class Circle(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Foreign Keys
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    # Note: Relationships are defined in User model with backrefs 'member' and 'creator_user'
+    
+    # Unique constraint to prevent duplicate circle joins
+    __table_args__ = (db.UniqueConstraint('user_id', 'creator_id', name='unique_circle_membership'),)
+
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.Text, nullable=False)
+    type = db.Column(db.String(20), default='info', nullable=False)
+    is_read = db.Column(db.Boolean, default=False, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Foreign Keys
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+
+class WithdrawRequest(db.Model):
+    __tablename__ = 'withdraw_request'
+    id = db.Column(db.Integer, primary_key=True)
+    coins = db.Column(db.Integer, nullable=False)
+    amount = db.Column(db.Numeric(10, 2), nullable=False)
+    payment_method = db.Column(db.String(50), nullable=False)
+    payment_details = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(20), default='pending', nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    admin_note = db.Column(db.Text, nullable=True)
+    
+    # Foreign Keys
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 
 def init_sample_data():
