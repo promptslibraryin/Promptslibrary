@@ -231,7 +231,7 @@ CREATE TABLE `sponsorship` (
 
 LOCK TABLES `sponsorship` WRITE;
 /*!40000 ALTER TABLE `sponsorship` DISABLE KEYS */;
-INSERT INTO `sponsorship` VALUES (17,'Follow me for more information ','Follow me for more information. Follow Hardik.WebQa to access ai content. Explore Create Earn. ','/static/uploads/sponsorships/e0af52b6-d74e-4768-8d5c-0fb498dc3596.jpg','Hardik.webqa','https://www.instagram.com/hardik.webqa',0,'2025-11-04 14:16:27','2025-11-30 00:00:00',1);
+INSERT INTO `sponsorship` VALUES (17,'Follow me for more information ','Follow me for more information. Follow Hardik.WebQa to access ai content. Explore Create Earn. ','/static/uploads/sponsorships/e0af52b6-d74e-4768-8d5c-0fb498dc3596.jpg','Hardik.webqa','https://www.instagram.com/hardik.webqa',1,'2025-11-04 14:16:27','2025-11-30 00:00:00',1);
 /*!40000 ALTER TABLE `sponsorship` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -328,4 +328,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-11-08  4:10:48
+-- Dump completed on 2025-11-15  7:10:31
