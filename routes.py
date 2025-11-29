@@ -8,7 +8,9 @@ from werkzeug.utils import secure_filename
 from app import app
 import razorpay
 from extensions import db
-from models import User, Category, Prompt, SavedPrompt, Sponsorship, CoinTransaction, Circle
+from models import (User, Category, Prompt, SavedPrompt, Sponsorship, CoinTransaction, Circle, 
+                    ReferralEvent, Notification, generate_referral_code, validate_email_provider, 
+                    award_coins, deduct_coins)
 import uuid
 
 # SMTP config (use env vars in production)
@@ -123,8 +125,8 @@ def prompt_detail_by_slug(slug):
         'access_level': prompt.access_level,
         'can_view_prompt': can_view_prompt,
         'can_edit': current_user.is_authenticated and prompt.user_id == current_user.id,
-        'can_view_details': current_user.is_authenticated and (current_user.is_subscribed or (current_user.subscription_expiry and current_user.subscription_expiry > datetime.utcnow())),
-        'can_start_trial': current_user.is_authenticated and (not current_user.is_subscribed)
+        'can_view_details': True,
+        'can_start_trial': False
     }
     
     if can_view_prompt or prompt.access_level == 'basic':
@@ -148,6 +150,12 @@ def login():
         # print(user.is_otp_verified)
         if user and check_password_hash(user.password_hash, password):
             login_user(user)
+            
+            # Auto-set admins as creators if not already
+            if user.is_admin and user.user_role != 'creator':
+                user.user_role = 'creator'
+                db.session.commit()
+            
             if not user.is_otp_verified:
                 # Generate and send OTP automatically
                 import random
@@ -202,23 +210,39 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    referral_code_param = request.args.get('ref', '')
     if request.method == 'POST':
         username = request.form['username']
         email = request.form['email']
         password = request.form['password']
+        referral_code_input = request.form.get('referral_code', '').strip().upper()
 
         import re
         if not re.match(r'^[A-Za-z0-9_]+$', username):
             flash('Username can only contain letters, numbers, and underscores!', 'error')
-            return render_template('register-pixel.html')
+            return render_template('register-pixel.html', referral_code=referral_code_param)
+        
+        # Validate email provider and aliasing
+        is_valid, error_msg = validate_email_provider(email)
+        if not is_valid:
+            flash(error_msg, 'error')
+            return render_template('register-pixel.html', referral_code=referral_code_param)
 
         # Check if user already exists
         if User.query.filter_by(username=username).first():
             flash('Username already exists!', 'error')
-            return render_template('register-pixel.html')
+            return render_template('register-pixel.html', referral_code=referral_code_param)
         if User.query.filter_by(email=email).first():
             flash('Email already registered!', 'error')
-            return render_template('register-pixel.html')
+            return render_template('register-pixel.html', referral_code=referral_code_param)
+        
+        # Find referrer if referral code provided
+        referrer = None
+        if referral_code_input:
+            referrer = User.query.filter_by(referral_code=referral_code_input).first()
+            if not referrer:
+                flash('Invalid referral code. Proceeding without referral.', 'warning')
+        
         import random
         otp_code = str(random.randint(100000, 999999))
         user = User(
@@ -226,10 +250,14 @@ def register():
             email=email,
             password_hash=generate_password_hash(password),
             otp_code=otp_code,
-            is_otp_verified=False
+            is_otp_verified=False,
+            referral_code=generate_referral_code(),
+            referred_by=referrer.id if referrer else None
         )
         db.session.add(user)
         db.session.commit()
+        
+        # Note: Referral bonus is awarded after OTP verification to prevent abuse
 
         # Send OTP email using smtplib
         import smtplib
@@ -265,7 +293,7 @@ def register():
 
         login_user(user)
         return redirect(url_for('otp_verify'))
-    return render_template('register-pixel.html')
+    return render_template('register-pixel.html', referral_code=referral_code_param)
 
 @app.route('/otp_verify', methods=['GET', 'POST'])
 @login_required
@@ -316,6 +344,43 @@ def otp_verify():
                 user.is_otp_verified = True
                 user.otp_code = None
                 db.session.commit()
+                
+                # Award referral bonus after successful OTP verification
+                if user.referred_by:
+                    referrer = User.query.get(user.referred_by)
+                    if referrer:
+                        # Award 20 coins to referrer
+                        award_coins(referrer.id, 20, 'referral_signup', f'Referral bonus: {user.username} verified their account')
+                        # Award 20 coins to new user
+                        award_coins(user.id, 20, 'referral_signup', f'Welcome bonus: Referred by {referrer.username}')
+                        
+                        # Log referral event
+                        referral_event = ReferralEvent(
+                            referrer_id=referrer.id,
+                            referred_user_id=user.id,
+                            event_type='signup_bonus',
+                            coins_awarded=20
+                        )
+                        db.session.add(referral_event)
+                        
+                        # Create notifications
+                        referrer_notification = Notification(
+                            user_id=referrer.id,
+                            message=f'{user.username} verified their account using your referral! You earned 20 PM Coins.',
+                            type='coins'
+                        )
+                        user_notification = Notification(
+                            user_id=user.id,
+                            message=f'Welcome! You received 20 PM Coins as a referral bonus.',
+                            type='coins'
+                        )
+                        db.session.add(referrer_notification)
+                        db.session.add(user_notification)
+                        db.session.commit()
+                        
+                        flash('OTP verified successfully! You received 20 PM Coins as a welcome bonus.', 'success')
+                        return redirect(url_for('index'))
+                
                 flash('OTP verified successfully!', 'success')
                 return redirect(url_for('index'))
             else:
@@ -767,6 +832,43 @@ def verify_coin_payment():
             description=f'Purchased {coins} PM Coins for \u20b9{amount}'
         )
         db.session.add(transaction)
+        
+        # Award 5% referral bonus to referrer if user was referred
+        if current_user.referred_by:
+            referrer = User.query.get(current_user.referred_by)
+            if referrer:
+                referral_bonus = coins // 20  # 5% = 1/20, using integer division
+                if referral_bonus > 0:
+                    referrer.coins_balance += referral_bonus
+                    referrer.total_earned_coins += referral_bonus
+                    
+                    # Log referral bonus transaction
+                    referrer_transaction = CoinTransaction(
+                        user_id=referrer.id,
+                        transaction_type='referral_bonus',
+                        amount=referral_bonus,
+                        description=f'5% referral bonus: {current_user.username} purchased {coins} coins'
+                    )
+                    db.session.add(referrer_transaction)
+                    
+                    # Log referral event
+                    referral_event = ReferralEvent(
+                        referrer_id=referrer.id,
+                        referred_user_id=current_user.id,
+                        event_type='purchase_reward',
+                        coins_awarded=referral_bonus,
+                        purchase_coins=coins
+                    )
+                    db.session.add(referral_event)
+                    
+                    # Notify referrer
+                    notification = Notification(
+                        user_id=referrer.id,
+                        message=f'You earned {referral_bonus} PM Coins! Your referral {current_user.username} purchased coins.',
+                        type='coins'
+                    )
+                    db.session.add(notification)
+        
         db.session.commit()
         
         return jsonify({'success': True, 'message': f'{coins} coins added successfully!', 'newBalance': current_user.coins_balance})
@@ -896,6 +998,68 @@ def my_circles():
     return render_template('my-circles-pixel.html', circles=circles, creators=creators)
 
 
+@app.route('/api/referral/link')
+@login_required
+def get_referral_link():
+    """Return the current user's referral link and code"""
+    if not current_user.referral_code:
+        current_user.referral_code = generate_referral_code()
+        db.session.commit()
+    
+    base_url = request.host_url.rstrip('/')
+    referral_link = f"{base_url}/register?ref={current_user.referral_code}"
+    
+    return jsonify({
+        'referral_code': current_user.referral_code,
+        'referral_link': referral_link
+    })
+
+
+@app.route('/api/referral/stats')
+@login_required
+def get_referral_stats():
+    """Get referral statistics for the current user"""
+    referrals = User.query.filter_by(referred_by=current_user.id).all()
+    total_earned = sum(e.coins_awarded for e in ReferralEvent.query.filter_by(referrer_id=current_user.id).all())
+    
+    referral_list = []
+    for user in referrals:
+        referral_list.append({
+            'username': user.username,
+            'joined_date': user.created_at.strftime('%b %d, %Y') if user.created_at else 'Unknown',
+            'verified': user.email_validated_provider is not None,
+            'profile_pic': user.profile_pic or '/static/images/default-avatar.png'
+        })
+    
+    return jsonify({
+        'total_referrals': len(referrals),
+        'total_earned': total_earned,
+        'referral_code': current_user.referral_code,
+        'referrals': referral_list
+    })
+
+
+@app.route('/refer')
+@login_required
+def refer_page():
+    """Refer & Earn page"""
+    if not current_user.referral_code:
+        current_user.referral_code = generate_referral_code()
+        db.session.commit()
+    
+    base_url = request.host_url.rstrip('/')
+    referral_link = f"{base_url}/register?ref={current_user.referral_code}"
+    
+    referrals = User.query.filter_by(referred_by=current_user.id).all()
+    total_earned = sum(e.coins_awarded for e in ReferralEvent.query.filter_by(referrer_id=current_user.id).all())
+    
+    return render_template('refer-pixel.html', 
+                           referral_code=current_user.referral_code,
+                           referral_link=referral_link,
+                           referrals=referrals,
+                           total_earned=total_earned)
+
+
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
@@ -985,8 +1149,8 @@ def get_prompt(prompt_id):
         'creator_instagram': prompt.creator.instagram_id,
         'is_saved': is_saved,
         'can_edit': current_user.is_authenticated and prompt.user_id == current_user.id,
-        'can_view_details': current_user.is_authenticated and (current_user.is_subscribed or (current_user.subscription_expiry and current_user.subscription_expiry > datetime.utcnow())),
-        'can_start_trial': current_user.is_authenticated and (not current_user.is_subscribed)
+        'can_view_details': True,
+        'can_start_trial': False
     })
 
 
@@ -1236,17 +1400,26 @@ def public_profile(username):
     
     circle_members = []
     circle_count = 0
+    is_circle_member = False
+    
     if user.user_role == 'creator':
         circles = Circle.query.filter_by(creator_id=user.id).all()
         circle_count = len(circles)
         circle_members = [circle.member for circle in circles[:12]]
+        
+        if current_user.is_authenticated:
+            is_circle_member = Circle.query.filter_by(
+                creator_id=user.id, 
+                user_id=current_user.id
+            ).first() is not None
     
     return render_template('public_profile-pixel.html', 
                          user=user, 
                          prompts=prompts, 
                          total_prompts=total_prompts,
                          circle_members=circle_members,
-                         circle_count=circle_count)
+                         circle_count=circle_count,
+                         is_circle_member=is_circle_member)
 
 @app.route('/admin/users')
 @login_required

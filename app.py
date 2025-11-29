@@ -18,16 +18,18 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for
 # Flask-Mail removed; using smtplib directly in routes.py
 
 
-# db_url = os.getenv("DATABASE_URL") or os.getenv("CLEARDB_DATABASE_URL")
+# Get database URL from environment
+# Priority: MYSQL_DATABASE_URL (production MySQL) > DATABASE_URL (fallback) > SQLite (dev)
+db_url = os.getenv("MYSQL_DATABASE_URL") or os.getenv("DATABASE_URL")
 
-# if db_url and db_url.startswith("mysql://"):
-#     db_url = db_url.replace("mysql://", "mysql+pymysql://", 1)
-# elif db_url and db_url.startswith("postgres://"):
-#     db_url = db_url.replace("postgres://", "postgresql://", 1)
+# Handle MySQL connection string format
+if db_url and db_url.startswith("mysql://"):
+    db_url = db_url.replace("mysql://", "mysql+pymysql://", 1)
 
-# if not db_url:
-#     db_url = "sqlite:///prompt_gallery.db"
-db_url="mysql+pymysql://hardik:hardik%40005@localhost/prompt_gallery?charset=utf8mb4"
+# Fallback to SQLite for local development if no DATABASE_URL set
+if not db_url:
+    db_url = "sqlite:///prompt_gallery.db"
+db_url="mysql+pymysql://hardik:hardik%40005@localhost/prompt_gallery"
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)

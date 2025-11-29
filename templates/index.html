@@ -155,19 +155,49 @@
         </div>
     </section>
 
-    <!-- How to Earn Section -->
+    <!-- Referral Section -->
     <section class="section about-section">
+        <h2 class="section-title"><i class="fas fa-gift" style="color: #FFD700;"></i> Refer & Earn</h2>
+        <div class="about-content" style="max-width: 800px; margin: 0 auto;">
+            <p style="margin-bottom: 1.5rem; font-size: 1.3rem;">Share your referral link and earn PM Coins!</p>
+            <div class="earn-grid">
+                <div class="earn-card">
+                    <div class="earn-number"><i class="fas fa-user-plus" style="font-size: 2rem; color: #00FFFF;"></i></div>
+                    <h3 class="earn-title">20 Coins Instant</h3>
+                    <p class="earn-description">Both you and your friend get 20 PM Coins when they sign up!</p>
+                </div>
+                <div class="earn-card">
+                    <div class="earn-number"><i class="fas fa-percentage" style="font-size: 2rem; color: #FFD700;"></i></div>
+                    <h3 class="earn-title">5% Forever</h3>
+                    <p class="earn-description">Earn 5% of all coins your referrals purchase - forever!</p>
+                </div>
+                <div class="earn-card">
+                    <div class="earn-number"><i class="fas fa-coins" style="font-size: 2rem; color: #9D4EDD;"></i></div>
+                    <h3 class="earn-title">Example</h3>
+                    <p class="earn-description">Friend buys 200 coins? You earn 10 coins automatically!</p>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="{{ url_for('register') if not current_user.is_authenticated else url_for('public_profile', username=current_user.username) }}" class="pixel-btn pixel-btn-primary">
+                    <i class="fas fa-share-alt"></i> Get Your Referral Link
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- How to Earn Section -->
+    <section class="section">
         <h2 class="section-title">How to Earn</h2>
         <div class="earn-grid">
             <div class="earn-card">
                 <div class="earn-number">1️⃣</div>
                 <h3 class="earn-title">Refer & Earn</h3>
-                <p class="earn-description">Invite friends and earn coins for every new member</p>
+                <p class="earn-description">Get 20 coins + 5% of all future purchases from referrals</p>
             </div>
             <div class="earn-card">
                 <div class="earn-number">2️⃣</div>
-                <h3 class="earn-title">Circle Members Earn</h3>
-                <p class="earn-description">Get coins from new connections in your circle</p>
+                <h3 class="earn-title">Circle Members</h3>
+                <p class="earn-description">Earn 50 coins when users join your creator circle</p>
             </div>
             <div class="earn-card">
                 <div class="earn-number">3️⃣</div>

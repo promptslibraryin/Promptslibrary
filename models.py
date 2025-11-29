@@ -65,6 +65,11 @@ class User(UserMixin, db.Model):
     total_spent_coins = db.Column(db.Integer, default=0, nullable=False)
     user_role = db.Column(db.String(20), default='user', nullable=False)
     
+    # Referral System fields (v1.1)
+    referral_code = db.Column(db.String(12), unique=True, nullable=True)
+    referred_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    email_validated_provider = db.Column(db.String(50), nullable=True)
+    
     # Relationships
     prompts = db.relationship('Prompt', backref='creator', lazy=True, cascade='all, delete-orphan')
     saved_prompts = db.relationship('SavedPrompt', backref='user', lazy=True, cascade='all, delete-orphan')
@@ -73,6 +78,13 @@ class User(UserMixin, db.Model):
     circle_members = db.relationship('Circle', foreign_keys='Circle.creator_id', backref='creator_user', lazy=True, cascade='all, delete-orphan')
     notifications = db.relationship('Notification', backref='user', lazy=True, cascade='all, delete-orphan')
     withdraw_requests = db.relationship('WithdrawRequest', backref='user', lazy=True, cascade='all, delete-orphan')
+    referral_events_as_referrer = db.relationship('ReferralEvent', foreign_keys='[ReferralEvent.referrer_id]', backref='referrer', lazy=True)
+    referral_events_as_referred = db.relationship('ReferralEvent', foreign_keys='[ReferralEvent.referred_user_id]', backref='referred_user', lazy=True)
+    
+    @property
+    def is_creator(self):
+        """Admin users are automatically creators"""
+        return self.is_admin or self.user_role == 'creator'
 
 
 class Category(db.Model):
@@ -219,6 +231,95 @@ class WithdrawRequest(db.Model):
     
     # Foreign Keys
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+
+class ReferralEvent(db.Model):
+    __tablename__ = 'referral_event'
+    id = db.Column(db.Integer, primary_key=True)
+    event_type = db.Column(db.String(64), nullable=False)  # 'signup_reward', 'purchase_reward'
+    coins_awarded = db.Column(db.Integer, nullable=False)
+    purchase_coins = db.Column(db.Integer, default=0)  # For purchase_reward, the coins purchased
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Foreign Keys
+    referrer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    referred_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+
+# Email validation configuration
+ALLOWED_EMAIL_PROVIDERS = [
+    'gmail.com', 'yahoo.com', 'zoho.com', 'outlook.com', 
+    'hotmail.com', 'protonmail.com', 'icloud.com', 'aol.com',
+    'yandex.com', 'mail.com', 'live.com', 'msn.com'
+]
+
+
+def generate_referral_code():
+    """Generate a unique 8-character referral code"""
+    import secrets
+    import string
+    chars = string.ascii_uppercase + string.digits
+    while True:
+        code = ''.join(secrets.choice(chars) for _ in range(8))
+        existing = User.query.filter_by(referral_code=code).first()
+        if not existing:
+            return code
+
+
+def validate_email_provider(email):
+    """Validate email against whitelist and check for aliasing"""
+    if not email or '@' not in email:
+        return False, "Invalid email format"
+    
+    local_part, domain = email.lower().split('@', 1)
+    
+    # Check for plus-addressing (aliasing)
+    if '+' in local_part:
+        return False, "Please provide a non-alias email address (no '+' allowed)"
+    
+    # Check domain against whitelist
+    if domain not in ALLOWED_EMAIL_PROVIDERS:
+        return False, f"Please use a supported email provider: Gmail, Yahoo, Outlook, etc."
+    
+    return True, None
+
+
+def award_coins(user_id, coins, transaction_type, description=None):
+    """Award coins to a user with transaction logging"""
+    user = User.query.get(user_id)
+    if not user:
+        return False
+    
+    user.coins_balance += coins
+    user.total_earned_coins += coins
+    
+    transaction = CoinTransaction(
+        user_id=user_id,
+        transaction_type=transaction_type,
+        amount=coins,
+        description=description
+    )
+    db.session.add(transaction)
+    return True
+
+
+def deduct_coins(user_id, coins, transaction_type, description=None):
+    """Deduct coins from a user with transaction logging"""
+    user = User.query.get(user_id)
+    if not user or user.coins_balance < coins:
+        return False
+    
+    user.coins_balance -= coins
+    user.total_spent_coins += coins
+    
+    transaction = CoinTransaction(
+        user_id=user_id,
+        transaction_type=transaction_type,
+        amount=-coins,
+        description=description
+    )
+    db.session.add(transaction)
+    return True
 
 
 def init_sample_data():

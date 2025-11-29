@@ -5,7 +5,7 @@
 {% block content %}
     <!-- Main Content -->
     <div class="pixel-container">
-    {% if current_user.is_admin %}
+    {% if current_user.is_creator %}
         <div class="page-header">
             <h1 class="page-title">Add New Prompt</h1>
             <p class="page-subtitle">Create and share your AI prompt</p>
@@ -93,7 +93,7 @@
                 </div>
 
                 <!-- Category -->
-                <div style="margin-bottom: 2rem;">
+                <div style="margin-bottom: 1.5rem;">
                     <label for="category_id" style="display: block; font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">
                         <i class="fas fa-folder"></i> Category <span style="color: var(--pixel-red);">*</span>
                     </label>
@@ -111,6 +111,32 @@
                     </div>
                 </div>
 
+                <!-- Access Level -->
+                <div style="margin-bottom: 2rem;">
+                    <label style="display: block; font-family: 'VT323', monospace; font-size: 1.2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">
+                        <i class="fas fa-lock"></i> Access Level <span style="color: var(--pixel-red);">*</span>
+                    </label>
+                    <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-family: 'VT323', monospace; font-size: 1.1rem; padding: 0.8rem 1.2rem; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; transition: all 0.3s ease;">
+                            <input type="radio" name="access_level" value="basic" checked
+                                   style="width: 18px; height: 18px; cursor: pointer;"
+                                   onchange="this.parentElement.style.borderColor='var(--pixel-cyan)'; document.querySelector('input[value=exclusive]').parentElement.style.borderColor='var(--pixel-purple)'">
+                            <i class="fas fa-globe" style="color: var(--pixel-cyan);"></i> Basic
+                            <span style="font-size: 0.9rem; color: rgba(248, 249, 250, 0.6);">(Free for everyone)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-family: 'VT323', monospace; font-size: 1.1rem; padding: 0.8rem 1.2rem; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; transition: all 0.3s ease;">
+                            <input type="radio" name="access_level" value="exclusive"
+                                   style="width: 18px; height: 18px; cursor: pointer;"
+                                   onchange="this.parentElement.style.borderColor='var(--pixel-gold)'; document.querySelector('input[value=basic]').parentElement.style.borderColor='var(--pixel-purple)'">
+                            <i class="fas fa-crown" style="color: var(--pixel-gold);"></i> Exclusive
+                            <span style="font-size: 0.9rem; color: rgba(248, 249, 250, 0.6);">(Circle members only)</span>
+                        </label>
+                    </div>
+                    <small style="font-family: 'VT323', monospace; font-size: 0.9rem; color: rgba(248, 249, 250, 0.6); margin-top: 0.5rem; display: block;">
+                        Exclusive prompts are only visible to users who have joined your circle
+                    </small>
+                </div>
+
                 <!-- Action Buttons -->
                 <div style="display: flex; gap: 1rem; justify-content: center;">
                     <button type="submit" class="pixel-btn pixel-btn-primary" style="padding: 1rem 2rem;">
@@ -124,15 +150,18 @@
         </div>
         {% else %}
             <div style="text-align: center; padding: 4rem 2rem;">
-                <div style="font-size: 4rem; color: var(--pixel-red); margin-bottom: 1.5rem;">
-                    <i class="fas fa-lock"></i>
+                <div style="font-size: 4rem; color: var(--pixel-gold); margin-bottom: 1.5rem;">
+                    <i class="fas fa-crown"></i>
                 </div>
                 <h3 style="font-family: 'Press Start 2P', cursive; font-size: 1.2rem; color: var(--pixel-white); margin-bottom: 1rem;">
-                    Access Denied
+                    Become a Creator
                 </h3>
-                <p style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.7);">
-                    You are not authorized to access this page. Only admins can add prompts.
+                <p style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.7); margin-bottom: 1.5rem;">
+                    Only creators can add prompts. Upgrade to creator status to share your AI prompts!
                 </p>
+                <a href="{{ url_for('buy_coins') }}" class="pixel-btn pixel-btn-primary" style="padding: 1rem 2rem; text-decoration: none;">
+                    <i class="fas fa-crown"></i> Become a Creator (400 Coins)
+                </a>
             </div>
         {% endif %}
     </div>

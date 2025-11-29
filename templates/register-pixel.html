@@ -5,8 +5,8 @@
 {% block content %}
     <!-- Main Content -->
     <div class="pixel-container" style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 180px);">
-        <div style="width: 100%; max-width: 450px; background: rgba(26, 26, 31, 0.9); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 2.5rem; box-shadow: 0 8px 30px rgba(157, 78, 221, 0.3);">
-            <h1 style="font-family: 'Press Start 2P', cursive; font-size: 1.5rem; text-align: center; background: linear-gradient(135deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 2rem; filter: drop-shadow(0 0 10px #FFD700);">Join Us</h1>
+        <div class="auth-card" style="width: 100%; max-width: 450px; background: rgba(26, 26, 31, 0.9); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 2.5rem; box-shadow: 0 8px 30px rgba(157, 78, 221, 0.3);">
+            <h1 class="auth-title" style="font-family: 'Press Start 2P', cursive; font-size: 1.5rem; text-align: center; background: linear-gradient(135deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 2rem; filter: drop-shadow(0 0 10px #FFD700);">Join Us</h1>
             
             <form method="POST" id="registerForm" class="show-loading" style="font-family: 'VT323', monospace;">
                 <div style="margin-bottom: 1.5rem;">
@@ -30,6 +30,15 @@
                            style="width: 100%; padding: 0.8rem; font-size: 1.1rem; font-family: 'VT323', monospace; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; color: var(--pixel-white); transition: all 0.3s ease;"
                            onfocus="this.style.borderColor='var(--pixel-cyan)'; this.style.boxShadow='0 0 10px var(--pixel-cyan)'"
                            onblur="this.style.borderColor='var(--pixel-purple)'; this.style.boxShadow='none'">
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="referral_code" style="display: block; font-size: 1.1rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;">Referral Code (Optional)</label>
+                    <input type="text" id="referral_code" name="referral_code" value="{{ referral_code or '' }}" placeholder="Enter friend's referral code"
+                           style="width: 100%; padding: 0.8rem; font-size: 1.1rem; font-family: 'VT323', monospace; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; color: var(--pixel-white); transition: all 0.3s ease; text-transform: uppercase;"
+                           onfocus="this.style.borderColor='var(--pixel-cyan)'; this.style.boxShadow='0 0 10px var(--pixel-cyan)'"
+                           onblur="this.style.borderColor='var(--pixel-purple)'; this.style.boxShadow='none'">
+                    <div style="font-size: 0.9rem; color: var(--pixel-cyan); margin-top: 0.3rem;"><i class="fas fa-gift"></i> Both you and your friend get 20 PM Coins!</div>
                 </div>
                 
                 <div style="margin-bottom: 1.5rem; font-size: 0.9rem; color: rgba(248, 249, 250, 0.7);">
