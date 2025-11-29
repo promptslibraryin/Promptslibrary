@@ -5,11 +5,11 @@
 {% block content %}
     <!-- Main Content -->
     <div class="pixel-container" style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 180px);">
-        <div style="width: 100%; max-width: 450px; background: rgba(26, 26, 31, 0.9); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 2.5rem; box-shadow: 0 8px 30px rgba(157, 78, 221, 0.3);">
+        <div class="auth-card" style="width: 100%; max-width: 450px; background: rgba(26, 26, 31, 0.9); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 2.5rem; box-shadow: 0 8px 30px rgba(157, 78, 221, 0.3);">
             <div style="text-align: center; margin-bottom: 1.5rem;">
                 <i class="fas fa-shield-alt" style="font-size: 3rem; color: var(--pixel-cyan); filter: drop-shadow(0 0 10px var(--pixel-cyan));"></i>
             </div>
-            <h1 style="font-family: 'Press Start 2P', cursive; font-size: 1.3rem; text-align: center; background: linear-gradient(135deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; filter: drop-shadow(0 0 10px #FFD700);">OTP Verification</h1>
+            <h1 class="auth-title" style="font-family: 'Press Start 2P', cursive; font-size: 1.3rem; text-align: center; background: linear-gradient(135deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; filter: drop-shadow(0 0 10px #FFD700);">OTP Verification</h1>
             <p style="text-align: center; font-family: 'VT323', monospace; font-size: 1.1rem; color: rgba(248, 249, 250, 0.7); margin-bottom: 2rem;">We've sent a 6-digit code to your email</p>
             
             {% if error %}

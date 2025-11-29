@@ -753,7 +753,7 @@ function openSponsorshipModal(sponsorshipId) {
     window.location.href = `/sponsorship/${sponsorshipId}`;
 }
 
-// Open prompt modal for pixel gallery
+// Open prompt modal for pixel gallery (Instagram-style)
 function openPromptModal(promptId, slug) {
     const modal = document.getElementById('promptModal');
     const modalTitle = document.getElementById('modalTitle');
@@ -764,173 +764,214 @@ function openPromptModal(promptId, slug) {
     fetch(`/prompts/${slug}`)
         .then(response => response.json())
         .then(data => {
-            modalTitle.textContent = data.title;
-
-            const contentDiv = document.createElement('div');
-
-            // Image
-            const imageDiv = document.createElement('div');
-            imageDiv.style.marginBottom = '1.5rem';
-            const img = document.createElement('img');
-            img.src = isValidImageUrl(data.image_url) ? data.image_url : '/static/images/placeholder.png';
-            img.alt = data.title;
-            img.style.width = '100%';
-            img.style.borderRadius = '8px';
-            img.style.border = '2px solid var(--pixel-purple)';
-            imageDiv.appendChild(img);
-            contentDiv.appendChild(imageDiv);
-
-            // Meta
-            const metaDiv = document.createElement('div');
-            metaDiv.style.marginBottom = '1rem';
-            const categorySpan = document.createElement('span');
-            categorySpan.style.padding = '0.4rem 0.8rem';
-            categorySpan.style.background = 'rgba(157, 78, 221, 0.3)';
-            categorySpan.style.border = '1px solid var(--pixel-cyan)';
-            categorySpan.style.borderRadius = '6px';
-            categorySpan.style.display = 'inline-block';
-            categorySpan.style.marginRight = '0.5rem';
-            categorySpan.textContent = data.category;
-
-            const creatorLink = document.createElement('a');
-            creatorLink.href = `/user/${encodeURIComponent(data.creator)}`;
-            creatorLink.style.color = 'var(--pixel-cyan)';
-            creatorLink.className = 'creator-link';
-            creatorLink.addEventListener('click', function(e) { e.stopPropagation(); });
-
-            const creatorImg = document.createElement('img');
-            creatorImg.src = data.creator_profile_pic || '/static/images/default-profile.svg';
-            creatorImg.alt = `${data.creator}'s profile`;
-            creatorImg.style.width = '28px';
-            creatorImg.style.height = '28px';
-            creatorImg.style.borderRadius = '50%';
-            creatorImg.style.objectFit = 'cover';
-            creatorImg.style.margin = '0 0.5rem 0 0';
-            creatorImg.style.verticalAlign = 'middle';
-            creatorImg.style.border = '2px solid rgba(255,255,255,0.08)';
-            creatorImg.addEventListener('click', function(e) { e.stopPropagation(); });
-
-            const nameNode = document.createElement('span');
-            nameNode.textContent = data.creator;
-            nameNode.className = 'creator-name';
-            nameNode.style.verticalAlign = 'middle';
-            creatorLink.appendChild(creatorImg);
-            creatorLink.appendChild(nameNode);
-
-            const creatorBox = document.createElement('div');
-            const createdByLabel = document.createElement('span');
-            createdByLabel.textContent = 'by';
-            createdByLabel.style.fontFamily = "'VT323', monospace";
-            createdByLabel.style.color = 'rgba(248,249,250,0.75)';
-            createdByLabel.style.fontSize = '0.9rem';
-            creatorBox.appendChild(createdByLabel);
-            creatorBox.appendChild(creatorLink);
-
-            metaDiv.appendChild(categorySpan);
-            metaDiv.appendChild(creatorBox);
-            contentDiv.appendChild(metaDiv);
-
-            // Description
-            const descDiv = document.createElement('div');
-            descDiv.style.marginBottom = '1rem';
-            const descHeader = document.createElement('h4');
-            descHeader.style.color = 'var(--pixel-gold)';
-            descHeader.style.fontFamily = "'Orbitron', sans-serif";
-            descHeader.style.marginBottom = '0.5rem';
-            descHeader.textContent = 'Description';
-            const descText = document.createElement('p');
-            descText.textContent = data.description;
-            descDiv.appendChild(descHeader);
-            descDiv.appendChild(descText);
-            contentDiv.appendChild(descDiv);
-
-            if (data.can_view_details) {
-                const promptSection = document.createElement('div');
-                promptSection.style.marginBottom = '1rem';
-                promptSection.innerHTML = `
-                    <h4 style="color: var(--pixel-gold); font-family: 'Orbitron', sans-serif; margin-bottom: 0.5rem;">Prompt</h4>
-                    <div style="background: rgba(11, 11, 16, 0.8); padding: 1rem; border-radius: 8px; border: 2px solid var(--pixel-purple);">
-                        <p id="modalPromptText" style="margin-bottom: 0;"></p>
-                        <button id="copyPromptBtn" class="pixel-btn pixel-btn-secondary modal-copy-btn" style="margin-top: 1rem;">Copy Prompt</button>
+            modalTitle.textContent = '';
+            
+            const roleLabel = data.creator_role === 'creator' 
+                ? '<i class="fas fa-crown"></i> Creator' 
+                : 'Member';
+            
+            const circleBadgeHTML = data.in_circle 
+                ? '<span class="modal-circle-badge member"><i class="fas fa-check-circle"></i> Member</span>'
+                : (!data.can_edit && data.access_level === 'exclusive' 
+                    ? `<button class="modal-action-btn primary" id="headerJoinBtn"><i class="fas fa-user-plus"></i> Join</button>` 
+                    : '');
+            
+            const exclusiveBadgeHTML = data.access_level === 'exclusive'
+                ? '<div class="modal-exclusive-badge"><i class="fas fa-crown"></i> Exclusive</div>'
+                : '';
+            
+            let promptContentHTML = '';
+            if (data.can_view_prompt) {
+                promptContentHTML = `
+                    <div class="modal-prompt-section">
+                        <div class="modal-prompt-header">
+                            <h4 class="modal-prompt-label">Prompt</h4>
+                        </div>
+                        <p class="modal-prompt-text">${escapeHtml(data.prompt_text)}</p>
                     </div>
                 `;
-                promptSection.querySelector('#modalPromptText').textContent = data.prompt_text;
-                contentDiv.appendChild(promptSection);
-
-                const saveBtn = document.createElement('button');
-                saveBtn.id = 'toggleSaveBtn';
-                saveBtn.className = 'pixel-btn' + (data.is_saved ? ' pixel-btn-primary' : '');
-                saveBtn.style.marginTop = '1rem';
-                saveBtn.textContent = data.is_saved ? 'Unsave' : 'Save Prompt';
-                saveBtn.dataset.promptId = data.id;
-                saveBtn.dataset.isSaved = data.is_saved;
-                contentDiv.appendChild(saveBtn);
-
-                saveBtn.addEventListener('click', function(e) {
+            } else {
+                promptContentHTML = `
+                    <div class="modal-lock-section">
+                        <div class="modal-lock-icon"><i class="fas fa-lock"></i></div>
+                        <h4 class="modal-lock-title">Exclusive Prompt</h4>
+                        <p class="modal-lock-text">Join ${escapeHtml(data.creator)}'s circle to unlock</p>
+                        <button class="modal-action-btn primary" id="lockJoinBtn">
+                            <i class="fas fa-coins"></i> Join Circle (50 Coins)
+                        </button>
+                    </div>
+                `;
+            }
+            
+            const modalHTML = `
+                <div class="modal-creator-header">
+                    <a href="/user/${encodeURIComponent(data.creator)}" class="modal-creator-info" onclick="event.stopPropagation()">
+                        <img src="${data.creator_profile_pic || '/static/images/default-profile.svg'}" 
+                             alt="${escapeHtml(data.creator)}" class="modal-creator-avatar">
+                        <div class="modal-creator-details">
+                            <span class="modal-creator-name">${escapeHtml(data.creator)}</span>
+                            <span class="modal-creator-role">${roleLabel}</span>
+                        </div>
+                    </a>
+                    ${circleBadgeHTML}
+                </div>
+                
+                <div class="modal-image-container">
+                    <img src="${isValidImageUrl(data.image_url) ? data.image_url : '/static/images/placeholder.png'}" 
+                         alt="${escapeHtml(data.title)}" class="modal-image">
+                    ${exclusiveBadgeHTML}
+                </div>
+                
+                <a href="/category/${data.category_slug}" class="modal-category-tag" onclick="event.stopPropagation()">
+                    ${escapeHtml(data.category)}
+                </a>
+                
+                <h2 class="modal-title">${escapeHtml(data.title)}</h2>
+                <p class="modal-description">${escapeHtml(data.description)}</p>
+                
+                ${promptContentHTML}
+                
+                <div class="modal-action-row">
+                    ${data.can_view_prompt ? '<button class="modal-action-btn" id="copyBtn"><i class="fas fa-copy"></i> Copy</button>' : ''}
+                    <button class="modal-action-btn ${data.is_saved ? 'success' : ''}" id="saveBtn">
+                        <i class="${data.is_saved ? 'fas' : 'far'} fa-bookmark"></i> ${data.is_saved ? 'Saved' : 'Save'}
+                    </button>
+                    <button class="modal-action-btn" id="shareBtn"><i class="fas fa-share-alt"></i> Share</button>
+                    ${data.can_edit ? '<button class="modal-action-btn primary" id="editBtn"><i class="fas fa-edit"></i> Edit</button>' : ''}
+                </div>
+            `;
+            
+            modalContent.innerHTML = modalHTML;
+            
+            // Event Listeners
+            const copyBtn = document.getElementById('copyBtn');
+            if (copyBtn) {
+                copyBtn.onclick = (e) => {
                     e.stopPropagation();
-                    const promptIdLocal = saveBtn.dataset.promptId;
-                    const isSaved = saveBtn.dataset.isSaved === 'true';
-                    const endpoint = isSaved ? `/unsave_prompt/${promptIdLocal}` : `/save_prompt/${promptIdLocal}`;
+                    navigator.clipboard.writeText(data.prompt_text).then(() => {
+                        copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                        setTimeout(() => { copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy'; }, 2000);
+                    });
+                };
+            }
+            
+            const saveBtn = document.getElementById('saveBtn');
+            if (saveBtn) {
+                let isSaved = data.is_saved;
+                saveBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    const endpoint = isSaved ? `/unsave_prompt/${data.id}` : `/save_prompt/${data.id}`;
                     fetch(endpoint, { method: 'POST', headers: {'Content-Type': 'application/json'} })
                         .then(r => r.json())
                         .then(res => {
                             if (res.success) {
-                                if (isSaved) {
-                                    saveBtn.textContent = 'Save Prompt';
-                                    saveBtn.classList.remove('pixel-btn-primary');
-                                    saveBtn.dataset.isSaved = 'false';
-                                } else {
-                                    saveBtn.textContent = 'Unsave';
-                                    saveBtn.classList.add('pixel-btn-primary');
-                                    saveBtn.dataset.isSaved = 'true';
-                                }
+                                isSaved = !isSaved;
+                                saveBtn.innerHTML = isSaved 
+                                    ? '<i class="fas fa-bookmark"></i> Saved' 
+                                    : '<i class="far fa-bookmark"></i> Save';
+                                saveBtn.classList.toggle('success', isSaved);
                             }
                         });
-                });
-            } else {
-                contentDiv.innerHTML += `
-                    <div style="background: rgba(157, 78, 221, 0.1); border: 2px solid var(--pixel-purple); border-radius: 8px; padding: 2rem; text-align: center; margin-top: 1rem;">
-                        <p style="font-size: 1.2rem; margin-bottom: 1rem;">Unlock full prompt details</p>
-                        ${data.can_start_trial ? 
-                            '<a href="/subscription" class="pixel-btn pixel-btn-primary">Start Free Trial</a>' : 
-                            '<a href="/subscription" class="pixel-btn pixel-btn-primary">Upgrade Now</a>'
-                        }
-                    </div>
-                `;
+                };
             }
-
-            // Edit button
-            if (data.can_edit) {
-                const editBtn = document.createElement('button');
-                editBtn.className = 'pixel-btn pixel-btn-primary';
-                editBtn.style.marginTop = '1rem';
-                editBtn.style.marginLeft = '0.5rem';
-                editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
-                editBtn.addEventListener('click', function() {
-                    window.location.href = `/prompts/${data.slug}/edit`;
-                });
-                contentDiv.appendChild(editBtn);
-            }
-
-            modalContent.innerHTML = '';
-            modalContent.appendChild(contentDiv);
-
-            const copyBtn = document.getElementById('copyPromptBtn');
-            if (copyBtn) {
-                copyBtn.addEventListener('click', function(e) {
+            
+            const shareBtn = document.getElementById('shareBtn');
+            if (shareBtn) {
+                shareBtn.onclick = (e) => {
                     e.stopPropagation();
-                    const text = document.getElementById('modalPromptText').textContent;
-                    navigator.clipboard.writeText(text).then(() => {
-                        copyBtn.textContent = 'Copied!';
-                        setTimeout(() => { copyBtn.textContent = 'Copy Prompt'; }, 2000);
-                    });
-                });
+                    const shareUrl = window.location.origin + '/prompts/' + data.slug;
+                    if (navigator.share) {
+                        navigator.share({ title: data.title, text: data.description, url: shareUrl });
+                    } else {
+                        navigator.clipboard.writeText(shareUrl).then(() => {
+                            shareBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                            setTimeout(() => { shareBtn.innerHTML = '<i class="fas fa-share-alt"></i> Share'; }, 2000);
+                        });
+                    }
+                };
             }
+            
+            const editBtn = document.getElementById('editBtn');
+            if (editBtn) {
+                editBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    window.location.href = `/prompts/${data.slug}/edit`;
+                };
+            }
+            
+            const headerJoinBtn = document.getElementById('headerJoinBtn');
+            const lockJoinBtn = document.getElementById('lockJoinBtn');
+            
+            const handleJoinCircle = (e) => {
+                e.stopPropagation();
+                joinCircle(data.creator_id, promptId, slug);
+            };
+            
+            if (headerJoinBtn) headerJoinBtn.onclick = handleJoinCircle;
+            if (lockJoinBtn) lockJoinBtn.onclick = handleJoinCircle;
 
             modal.style.display = 'block';
             document.body.style.overflow = 'hidden';
         })
-        .catch(error => console.error('Error:', error));
+        .catch(() => {});
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Join circle helper function
+function joinCircle(creatorId, promptId, slug) {
+    Swal.fire({
+        title: 'Join Circle?',
+        text: 'This will cost 50 PM Coins',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Join Circle',
+        cancelButtonText: 'Cancel',
+        background: '#1a1a1f',
+        color: '#f8f9fa',
+        confirmButtonColor: '#9D4EDD'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/join-circle/${creatorId}`, { method: 'POST' })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success) {
+                        Swal.fire({ 
+                            icon: 'success', 
+                            title: 'Joined!', 
+                            text: res.message, 
+                            timer: 2000, 
+                            showConfirmButton: false, 
+                            background: '#1a1a1f', 
+                            color: '#f8f9fa' 
+                        });
+                        openPromptModal(promptId, slug);
+                    } else {
+                        Swal.fire({ 
+                            icon: 'error', 
+                            title: 'Oops!', 
+                            text: res.message, 
+                            background: '#1a1a1f', 
+                            color: '#f8f9fa' 
+                        });
+                    }
+                })
+                .catch(() => {
+                    Swal.fire({ 
+                        icon: 'error', 
+                        title: 'Error', 
+                        text: 'Please login to join circle', 
+                        background: '#1a1a1f', 
+                        color: '#f8f9fa' 
+                    });
+                });
+        }
+    });
 }
 
 // Close modal used in pixel gallery

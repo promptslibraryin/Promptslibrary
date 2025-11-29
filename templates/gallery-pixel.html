@@ -60,6 +60,9 @@
                     <div class="card-image-container">
                         <img src="{{ prompt.image_url }}" alt="{{ prompt.title }}" class="card-image" loading="lazy">
                         <div class="pixel-category-badge">{{ prompt.category.name }}</div>
+                        {% if prompt.access_level == 'exclusive' %}
+                            <div class="pixel-exclusive-badge"><i class="fas fa-crown"></i></div>
+                        {% endif %}
                         <div class="card-overlay">
                             <h3 class="card-title">{{ prompt.title }}</h3>
                             <p class="card-creator">by {{ prompt.creator.username }}</p>

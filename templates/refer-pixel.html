@@ -1,0 +1,187 @@
+{% extends "base-pixel.html" %}
+
+{% block title %}Refer & Earn - Prompts Library{% endblock %}
+
+{% block content %}
+<div class="pixel-container" style="padding: 2rem 1rem; max-width: 900px; margin: 0 auto;">
+    
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="font-family: 'Press Start 2P', cursive; font-size: 1.5rem; background: linear-gradient(135deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem;">
+            <i class="fas fa-gift" style="-webkit-text-fill-color: #FFD700;"></i> Refer & Earn
+        </h1>
+        <p style="font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(248, 249, 250, 0.8);">
+            Invite friends and earn PM Coins together!
+        </p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        <div style="background: rgba(26, 26, 31, 0.9); border: 2px solid var(--pixel-gold); border-radius: 12px; padding: 1.5rem; text-align: center;">
+            <i class="fas fa-users" style="font-size: 2rem; color: var(--pixel-cyan); margin-bottom: 0.5rem;"></i>
+            <div style="font-family: 'Press Start 2P', cursive; font-size: 1.5rem; color: var(--pixel-gold);">{{ referrals|length }}</div>
+            <div style="font-family: 'VT323', monospace; font-size: 1.1rem; color: rgba(248, 249, 250, 0.7);">Total Referrals</div>
+        </div>
+        <div style="background: rgba(26, 26, 31, 0.9); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 1.5rem; text-align: center;">
+            <i class="fas fa-coins" style="font-size: 2rem; color: var(--pixel-gold); margin-bottom: 0.5rem;"></i>
+            <div style="font-family: 'Press Start 2P', cursive; font-size: 1.5rem; color: var(--pixel-gold);">{{ total_earned }}</div>
+            <div style="font-family: 'VT323', monospace; font-size: 1.1rem; color: rgba(248, 249, 250, 0.7);">Coins Earned</div>
+        </div>
+    </div>
+
+    <div style="background: rgba(26, 26, 31, 0.9); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+        <h2 style="font-family: 'Press Start 2P', cursive; font-size: 0.9rem; color: var(--pixel-cyan); margin-bottom: 1rem;">
+            <i class="fas fa-link"></i> Your Referral Link
+        </h2>
+        
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+            <input type="text" id="referralLink" value="{{ referral_link }}" readonly
+                   style="flex: 1; min-width: 200px; padding: 0.8rem; font-family: 'VT323', monospace; font-size: 1rem; background: rgba(11, 11, 16, 0.8); border: 2px solid var(--pixel-purple); border-radius: 8px; color: var(--pixel-white);">
+            <button onclick="copyReferralLink()" class="pixel-btn pixel-btn-primary" style="padding: 0.8rem 1.2rem;">
+                <i class="fas fa-copy"></i> Copy
+            </button>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+            <span style="font-family: 'VT323', monospace; color: rgba(248, 249, 250, 0.7);">Your Code:</span>
+            <span style="font-family: 'Press Start 2P', cursive; font-size: 0.8rem; color: var(--pixel-gold); background: rgba(255, 215, 0, 0.1); padding: 0.3rem 0.6rem; border-radius: 4px;">{{ referral_code }}</span>
+        </div>
+        
+        <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button onclick="shareWhatsApp()" class="pixel-btn" style="background: #25D366; border-color: #25D366; padding: 0.6rem 1rem;">
+                <i class="fab fa-whatsapp"></i> WhatsApp
+            </button>
+            <button onclick="shareTelegram()" class="pixel-btn" style="background: #0088cc; border-color: #0088cc; padding: 0.6rem 1rem;">
+                <i class="fab fa-telegram"></i> Telegram
+            </button>
+            <button onclick="shareTwitter()" class="pixel-btn" style="background: #1DA1F2; border-color: #1DA1F2; padding: 0.6rem 1rem;">
+                <i class="fab fa-twitter"></i> Twitter
+            </button>
+        </div>
+    </div>
+
+    <div style="background: linear-gradient(135deg, rgba(157, 78, 221, 0.2), rgba(0, 255, 255, 0.1)); border: 2px solid var(--pixel-cyan); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+        <h3 style="font-family: 'Press Start 2P', cursive; font-size: 0.8rem; color: var(--pixel-gold); margin-bottom: 1rem;">
+            <i class="fas fa-star"></i> How It Works
+        </h3>
+        <div style="font-family: 'VT323', monospace; font-size: 1.1rem; color: rgba(248, 249, 250, 0.9);">
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.8rem; align-items: flex-start;">
+                <span style="color: var(--pixel-gold); font-weight: bold;">1.</span>
+                <span>Share your referral link with friends</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.8rem; align-items: flex-start;">
+                <span style="color: var(--pixel-gold); font-weight: bold;">2.</span>
+                <span>They sign up and verify their email (OTP)</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.8rem; align-items: flex-start;">
+                <span style="color: var(--pixel-gold); font-weight: bold;">3.</span>
+                <span><strong style="color: var(--pixel-cyan);">You both get 20 PM Coins!</strong></span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
+                <span style="color: var(--pixel-gold); font-weight: bold;">4.</span>
+                <span><strong style="color: var(--pixel-gold);">You earn 5% of all their future coin purchases forever!</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <div style="background: rgba(26, 26, 31, 0.9); border: 2px solid var(--pixel-purple); border-radius: 12px; padding: 1.5rem;">
+        <h2 style="font-family: 'Press Start 2P', cursive; font-size: 0.9rem; color: var(--pixel-cyan); margin-bottom: 1rem;">
+            <i class="fas fa-user-friends"></i> Your Referrals
+        </h2>
+        
+        {% if referrals %}
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-family: 'VT323', monospace;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--pixel-purple);">
+                            <th style="padding: 0.8rem; text-align: left; color: var(--pixel-cyan);">User</th>
+                            <th style="padding: 0.8rem; text-align: left; color: var(--pixel-cyan);">Joined</th>
+                            <th style="padding: 0.8rem; text-align: center; color: var(--pixel-cyan);">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in referrals %}
+                        <tr style="border-bottom: 1px solid rgba(157, 78, 221, 0.3);">
+                            <td style="padding: 0.8rem;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <img src="{{ user.profile_pic or url_for('static', filename='images/default-profile.svg') }}" alt="{{ user.username }}" 
+                                         style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--pixel-purple);">
+                                    <a href="{{ url_for('public_profile', username=user.username) }}" style="color: var(--pixel-white); text-decoration: none;">
+                                        {{ user.username }}
+                                    </a>
+                                </div>
+                            </td>
+                            <td style="padding: 0.8rem; color: rgba(248, 249, 250, 0.7);">
+                                {{ user.created_at.strftime('%b %d, %Y') if user.created_at else 'Unknown' }}
+                            </td>
+                            <td style="padding: 0.8rem; text-align: center;">
+                                {% if user.email_validated_provider %}
+                                    <span style="background: rgba(0, 255, 0, 0.2); color: #00ff00; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.9rem;">
+                                        <i class="fas fa-check-circle"></i> Verified
+                                    </span>
+                                {% else %}
+                                    <span style="background: rgba(255, 165, 0, 0.2); color: #FFA500; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.9rem;">
+                                        <i class="fas fa-clock"></i> Pending
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 2rem; color: rgba(248, 249, 250, 0.6);">
+                <i class="fas fa-user-plus" style="font-size: 3rem; margin-bottom: 1rem; color: var(--pixel-purple);"></i>
+                <p style="font-family: 'VT323', monospace; font-size: 1.2rem;">No referrals yet. Share your link to start earning!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function copyReferralLink() {
+    const input = document.getElementById('referralLink');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(input.value).then(() => {
+        Swal.fire({
+            icon: 'success',
+            title: 'Copied!',
+            text: 'Referral link copied to clipboard',
+            timer: 1500,
+            showConfirmButton: false,
+            background: '#1a1a1f',
+            color: '#f8f9fa'
+        });
+    }).catch(err => {
+        document.execCommand('copy');
+        Swal.fire({
+            icon: 'success',
+            title: 'Copied!',
+            text: 'Referral link copied to clipboard',
+            timer: 1500,
+            showConfirmButton: false,
+            background: '#1a1a1f',
+            color: '#f8f9fa'
+        });
+    });
+}
+
+function shareWhatsApp() {
+    const link = document.getElementById('referralLink').value;
+    const text = encodeURIComponent(`Join Prompts Library and get 20 FREE PM Coins! Use my referral link: ${link}`);
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+}
+
+function shareTelegram() {
+    const link = document.getElementById('referralLink').value;
+    const text = encodeURIComponent(`Join Prompts Library and get 20 FREE PM Coins!`);
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${text}`, '_blank');
+}
+
+function shareTwitter() {
+    const link = document.getElementById('referralLink').value;
+    const text = encodeURIComponent(`Join Prompts Library - India's #1 AI Platform! Get 20 FREE PM Coins when you sign up: ${link}`);
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+}
+</script>
+{% endblock %}

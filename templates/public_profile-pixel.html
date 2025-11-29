@@ -192,6 +192,37 @@
                     </div>
                     {% endif %}
                 </div>
+                
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 1.5rem;">
+                    {% if current_user.is_authenticated and current_user.id == user.id %}
+                        <!-- Share Profile Button (Own Profile) -->
+                        <button onclick="shareProfile()" class="pixel-btn pixel-btn-primary" style="padding: 0.7rem 1.2rem;">
+                            <i class="fas fa-share-alt"></i> Share Profile
+                        </button>
+                        <a href="{{ url_for('refer_page') }}" class="pixel-btn" style="padding: 0.7rem 1.2rem; text-decoration: none;">
+                            <i class="fas fa-gift"></i> Refer & Earn
+                        </a>
+                    {% elif current_user.is_authenticated and user.is_creator %}
+                        <!-- Join Circle Button (Other Creator's Profile) -->
+                        {% if is_circle_member %}
+                            <span class="pixel-btn" style="padding: 0.7rem 1.2rem; background: rgba(0, 255, 0, 0.2); border-color: #00ff00; color: #00ff00;">
+                                <i class="fas fa-check-circle"></i> Circle Member
+                            </span>
+                        {% else %}
+                            <button onclick="joinCreatorCircle({{ user.id }})" class="pixel-btn pixel-btn-primary" style="padding: 0.7rem 1.2rem;">
+                                <i class="fas fa-user-plus"></i> Join Circle (50 Coins)
+                            </button>
+                        {% endif %}
+                        <button onclick="shareProfile()" class="pixel-btn" style="padding: 0.7rem 1.2rem;">
+                            <i class="fas fa-share-alt"></i> Share
+                        </button>
+                    {% elif not current_user.is_authenticated and user.is_creator %}
+                        <a href="{{ url_for('login') }}" class="pixel-btn pixel-btn-primary" style="padding: 0.7rem 1.2rem; text-decoration: none;">
+                            <i class="fas fa-user-plus"></i> Join Circle
+                        </a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
@@ -398,5 +429,83 @@
             closeModal();
         }
     });
+
+    // Share profile function
+    function shareProfile() {
+        const shareUrl = window.location.href;
+        const shareTitle = "{{ user.username }}'s Profile on Prompts Library";
+        const shareText = "Check out {{ user.username }}'s AI prompts on Prompts Library!";
+        
+        if (navigator.share) {
+            navigator.share({
+                title: shareTitle,
+                text: shareText,
+                url: shareUrl
+            }).catch(() => {});
+        } else {
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Link Copied!',
+                    text: 'Profile link copied to clipboard',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    background: '#1a1a1f',
+                    color: '#f8f9fa'
+                });
+            });
+        }
+    }
+
+    // Join creator circle function
+    function joinCreatorCircle(creatorId) {
+        Swal.fire({
+            title: 'Join Circle?',
+            text: 'This will cost 50 PM Coins',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Join Circle',
+            cancelButtonText: 'Cancel',
+            background: '#1a1a1f',
+            color: '#f8f9fa',
+            confirmButtonColor: '#9D4EDD'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/join-circle/${creatorId}`, { method: 'POST' })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Joined!',
+                                text: res.message,
+                                timer: 2000,
+                                showConfirmButton: false,
+                                background: '#1a1a1f',
+                                color: '#f8f9fa'
+                            });
+                            setTimeout(() => location.reload(), 2000);
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops!',
+                                text: res.message,
+                                background: '#1a1a1f',
+                                color: '#f8f9fa'
+                            });
+                        }
+                    })
+                    .catch(() => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Something went wrong. Please try again.',
+                            background: '#1a1a1f',
+                            color: '#f8f9fa'
+                        });
+                    });
+            }
+        });
+    }
 </script>
 {% endblock %}

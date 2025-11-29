@@ -80,6 +80,7 @@
                     </button>
                     <div id="navDropdownMenu" class="nav-dropdown-content">
                         <div class="dropdown-header"><i class="fas fa-coins"></i> PM Coins: {{ current_user.coins_balance }}</div>
+                        <a href="{{ url_for('refer_page') }}"><i class="fas fa-gift"></i> Refer & Earn</a>
                         <a href="{{ url_for('withdraw_page') }}"><i class="fas fa-money-bill-wave"></i> Withdraw Coins</a>
                         <div class="dropdown-divider"></div>
                         {% if current_user.is_admin %}
